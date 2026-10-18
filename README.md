@@ -1,0 +1,63 @@
+# Theesees
+
+A browser-local literature-reading and thinking workspace. Organize papers, connect keywords, save source passages, and preserve AI conversations and your developing thoughts.
+
+## Use on another computer
+
+1. On GitHub, choose **Code → Download ZIP**, then unzip it. Alternatively, clone this repository.
+2. Open `dist/prototype.html` in Chrome or Edge. No build, account, API key, or package installation is required.
+3. Keep the entire `dist` folder together: its scripts, styles, and illustration are required.
+
+For a consistent browser storage origin, use a local server if Python 3 is installed. In a terminal opened in the downloaded folder:
+
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1 --directory dist
+```
+
+On Windows, use `py -3` instead of `python3` if necessary. Open **http://127.0.0.1:8765/prototype.html** and leave the terminal running. Stop it with Ctrl+C.
+
+Keep using the same browser and address. File URLs and localhost have different storage; switching can make your existing records appear absent. File-URL storage behavior also varies by browser.
+
+## Important: your research does not live in this repository
+
+This repository contains application code and design assets, not personal papers or conversations. Downloading it on another computer starts a separate workspace.
+
+- Records, pasted text, passages, conversations, replies, and key thoughts use browser localStorage.
+- Attached PDFs use browser IndexedDB.
+- **Export records** downloads JSON records but **does not include PDFs**. Keep original PDFs separately.
+- **Backup import is not implemented yet.** The JSON export is a safeguard, not a one-click migration feature. Do not clear the original browser or discard its files before migration has been implemented and verified.
+- There is no cloud sync. GitHub does not synchronize research data.
+- Do not commit exported research, private conversations, or PDFs to this public repository.
+
+## Features
+
+- Editable colored keyword folders and connections; links to literature.
+- Pull-out literature drawer; editable title, authors, and year.
+- PDF reading and expanded view, pasted-text reading, editable source passages.
+- Source-linked discussions with paper and keyword filters.
+- Original imported conversations preserved alongside new comments and pasted AI replies.
+- Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
+- Key-thought markers, editing, and Trash with 30-day recovery.
+- Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
+- Zotero CSL-JSON bibliography import, not live Zotero synchronization.
+
+No live AI calls, automatic conclusions, PDF OCR, or automatic source verification. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
+
+## Developer checks
+
+With Node.js installed, run from the repository root:
+
+```sh
+node reader-check.cjs
+node discussion-check.cjs
+node blocks-check.cjs
+node trash-check.cjs
+```
+
+These cover reader logic, text cleanup, replies/subthreads, metadata preservation, and Trash expiry. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
+
+`?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
+
+## Illustration credit
+
+Footer artwork by **Sakura Tamagawa**, originally published in **The New York Times**, displayed from a user-supplied reference screenshot. This third-party artwork is not covered by any software license in this repository. No redistribution permission is asserted; obtain permission or replace it before distributing a product using it.
