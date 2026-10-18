@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {cleanPDFBreaks,conversationTurns}=require('./dist/reading-utils.js');
+assert.equal(cleanPDFBreaks('Before I address\ncultural globalization,\nI must explain.\n\nAnother paragraph.'),'Before I address cultural globalization, I must explain.\n\nAnother paragraph.');
+assert.equal(cleanPDFBreaks('- one\n- two\n\nParagraph\ncontinued'),'- one\n- two\n\nParagraph continued');
+assert.equal(cleanPDFBreaks('女性\n翻译'),'女性翻译');
+assert.equal(cleanPDFBreaks('taken-for-\ngranted'),'taken-for-granted');
+assert.equal(cleanPDFBreaks('```\nconst a=1;\nconst b=2;\n```'),'```\nconst a=1;\nconst b=2;\n```');
+const text='You said:\nWhat is the claim?\nChatGPT said:\nFirst line\nwrapped line.\n\nSecond paragraph.\nUser: I disagree.';
+const turns=conversationTurns(text);
+assert.equal(turns.length,3);
+assert.equal(turns[0].speaker,'You said');
+assert.equal(turns[1].body,'First line\nwrapped line.\n\nSecond paragraph.');
+assert.equal(conversationTurns('Unlabelled notes.')[0].speaker,'Unlabelled text');
+assert.equal(conversationTurns('Assistant:\n```\nUser: not a real turn\n```').length,1);
+assert.equal(conversationTurns('**User:** Question\n**Assistant:** Answer').length,2);
+console.log('PASS: PDF wrap cleanup, paragraphs, lists, CJK, hyphens, code, labelled turns and unlabelled fallback.');
