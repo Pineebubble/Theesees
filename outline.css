@@ -1,0 +1,40 @@
+.tabs button[data-view=outline]{background:#c7dcdf}
+.tabs button[data-view=outline].active{background:var(--paper)}
+.outline-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);align-items:start}
+.outline-tree{padding:22px 30px 30px;min-width:0}
+.outline-pool{padding:22px;background:#f0ede1;border-left:1px solid var(--line);min-width:0;position:sticky;top:0;max-height:100vh;overflow:auto}
+.outline-pool h2{font-size:16px}
+.outline-part{margin-bottom:18px}
+.outline-part.level-1{margin-top:22px;padding-top:18px;border-top:2px solid var(--ink)}
+.outline-part.level-1:first-child{margin-top:0}
+.outline-part.level-2{margin-left:28px;padding-left:16px;border-left:2px solid var(--line)}
+.outline-part-head{display:flex;justify-content:space-between;gap:14px;align-items:start;margin-bottom:10px}
+.outline-part-head h2{font:21px/1.4 Georgia,serif}
+.outline-part.level-2 h2{font-size:17px}
+.outline-part-head .actions button{font-size:11px;padding:5px 9px}
+.outline-number{font:10px ui-monospace,monospace;letter-spacing:1.2px}
+.outline-note{font:italic 13px/1.6 Georgia,serif;color:var(--muted);margin-top:4px!important}
+.outline-drop{min-height:54px;padding:6px;border:1px dashed transparent;border-radius:4px;transition:background .15s,border-color .15s}
+.outline-drop.drop-target{border-color:#617c94;background:#e3ecee}
+.outline-empty{font-size:12px;color:var(--muted);padding:12px;border:1px dashed #c9c6ad;text-align:center}
+.outline-claim{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:10px;align-items:start;background:#fffbed;border:1px solid #d2ccb7;border-left:4px solid var(--sage);padding:11px 12px;margin:6px 0;cursor:grab}
+.outline-claim.status-hunch{border-left-color:#d7d5c2}
+.outline-claim.status-defensible{border-left-color:#4ba361}
+.outline-claim.dragging{opacity:.4}
+.drag-handle{color:#a9a68d;font-size:12px;line-height:1.8;user-select:none}
+.outline-claim-text{font:14px/1.6 Georgia,serif;text-decoration:none!important;overflow-wrap:anywhere}
+.outline-claim-text:hover{text-decoration:underline!important}
+.outline-claim-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:7px}
+.outline-claim-meta small{margin-left:4px}
+.outline-claim-actions{display:flex;gap:4px;align-items:center}
+.outline-claim-actions button{font-size:11px;padding:4px 8px}
+.outline-claim-actions select{width:130px;font-size:11px;padding:5px}
+.outline-placement{display:flex;align-items:center;gap:8px;margin:0}
+.outline-placement select{width:200px!important}
+.outline-export-options{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
+.outline-export-options label{display:flex;gap:6px;align-items:center;margin:0}
+.outline-export-options input{width:auto;margin:0}
+#outline-md{font:12px/1.6 ui-monospace,monospace;min-height:300px}
+.outline-export-actions{justify-content:flex-end;margin-top:12px}
+@media(max-width:950px){.outline-layout{grid-template-columns:1fr}.outline-pool{position:static;max-height:none;border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:650px){.outline-tree{padding:18px}.outline-part.level-2{margin-left:8px}.outline-part-head{flex-direction:column}.outline-claim{grid-template-columns:minmax(0,1fr)}.drag-handle{display:none}.outline-claim-actions select{width:100%}}
