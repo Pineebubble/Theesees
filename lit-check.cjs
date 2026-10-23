@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const {findDOIs,normDOI,usableTitle,usableAuthor,titleFromItems,crossrefToPaper,openalexToPaper,titleSimilarity,matchScore,candidateScore,findDuplicate}=require('./dist/lit-meta.js');
+const {findDOIs,normDOI,usableTitle,usableAuthor,titleFromItems,crossrefToPaper,openalexToPaper,titleSimilarity,matchScore,candidateScore,findDuplicate,pickCSL,apaFromCSL,paperToCSL,apaPlain}=require('./dist/lit-meta.js');
 
 // DOIs inside running text and reference lists; trailing punctuation dropped, balanced brackets kept, duplicates once.
 assert.deepEqual(findDOIs('See https://doi.org/10.1215/01642472-18-2_63-33. Also (doi:10.1177/1367549407088333), and 10.1016/S0140-6736(20)30183-5; again 10.1215/01642472-18-2_63-33'),
@@ -44,4 +44,23 @@ const lib=[{title:'Free Labor: Producing Culture',doi:'10.1215/01642472-18-2_63-
 assert.equal(findDuplicate(lib,{doi:'https://doi.org/10.1215/01642472-18-2_63-33',title:'x'}),lib[0]);
 assert.equal(findDuplicate(lib,{doi:'',title:'platform capitalism.'}),lib[1]);
 assert.equal(findDuplicate(lib,{doi:'10.9/new',title:'Something else'}),null);
-console.log('PASS: DOI finding, junk PDF fields ignored, title from page layout, Crossref/OpenAlex mapping, title and author matching (incl. CJK), duplicates.');
+// APA 7 references (asterisks = italics).
+const yr=y=>({'date-parts':[[y]]});
+assert.equal(apaFromCSL({type:'journal-article',author:[{given:'Tiziana',family:'Terranova'}],title:['Free Labor'],'container-title':['Social Text'],volume:'18',issue:'2',page:'33-58',issued:yr(2000),DOI:'10.1215/01642472-18-2_63-33'}),
+ 'Terranova, T. (2000). Free Labor. *Social Text*, *18*(2), 33–58. https://doi.org/10.1215/01642472-18-2_63-33');
+assert.equal(apaFromCSL({type:'journal-article',author:[{given:'Yann',family:'LeCun'},{given:'Yoshua',family:'Bengio'},{given:'Geoffrey',family:'Hinton'}],title:['Deep learning'],'container-title':['Nature'],volume:'521',issue:'7553',page:'436-444',issued:yr(2015),DOI:'10.1038/nature14539'}),
+ 'LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. *Nature*, *521*(7553), 436–444. https://doi.org/10.1038/nature14539');
+assert.equal(apaFromCSL({type:'book',author:[{given:'Michael',family:'Cronin'}],title:['Translation and Globalization'],publisher:'Routledge',issued:yr(2013),DOI:'10.4324/9780203378816'}),
+ 'Cronin, M. (2013). *Translation and Globalization*. Routledge. https://doi.org/10.4324/9780203378816');
+assert.equal(apaFromCSL({type:'edited-book',editor:[{given:'Michaela',family:'Wolf'},{given:'Alexandra',family:'Fukari'}],title:['Constructing a Sociology of Translation'],'container-title':['Benjamins Translation Library'],publisher:'Portico',issued:yr(2007),DOI:'10.1075/btl.74'}),
+ 'Wolf, M., & Fukari, A. (Eds.). (2007). *Constructing a Sociology of Translation*. https://doi.org/10.1075/btl.74'); // series name and archive "publisher" left out
+assert.equal(apaFromCSL({type:'book-chapter',author:[{given:'Jean-Marc',family:'Gouanvic'}],editor:[{given:'Michaela',family:'Wolf'},{given:'Alexandra',family:'Fukari'}],title:['Objectivation'],'container-title':['Constructing a Sociology of Translation'],page:'79-92',publisher:'John Benjamins',issued:yr(2007)}),
+ 'Gouanvic, J.-M. (2007). Objectivation. In M. Wolf & A. Fukari (Eds.), *Constructing a Sociology of Translation* (pp. 79–92). John Benjamins.');
+// From a paper's own fields: "Given Family" lists, "Family, I." lists, CJK names, no year.
+assert.equal(apaFromCSL(paperToCSL({title:'Brokers of Meaning',author:'Jane Smith, John A. Doe',year:'2020',journal:'Target'})),'Smith, J., & Doe, J. A. (2020). Brokers of Meaning. *Target*.');
+assert.equal(apaFromCSL(paperToCSL({title:'Brokers of Meaning',author:'Smith, J., Doe, A. B.',year:''})),'Smith, J., & Doe, A. B. (n.d.). *Brokers of Meaning*.');
+assert.equal(apaFromCSL(paperToCSL({title:'翻译社会学的理论视角',author:'王宁',year:'2016'})),'王宁. (2016). *翻译社会学的理论视角*.');
+assert.equal(apaPlain('Cronin, M. (2013). *Translation and Globalization*. Routledge.'),'Cronin, M. (2013). Translation and Globalization. Routledge.');
+assert.deepEqual(Object.keys(pickCSL({type:'book',title:['x'],author:[],score:3,link:[]})).sort(),['title','type']);
+
+console.log('PASS: DOI finding, junk PDF fields ignored, title from page layout, Crossref/OpenAlex mapping, title and author matching (incl. CJK), duplicates, APA 7 references.');

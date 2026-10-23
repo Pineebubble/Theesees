@@ -506,3 +506,14 @@ dialog.wide{width:min(980px,96vw)}
 .batch-key summary{cursor:pointer;color:var(--muted)}
 .batch-key label{margin:10px 0 0}
 .batch-key small{display:block;color:var(--muted);margin-top:2px}
+
+/* ---------- APA references ---------- */
+.apa-line{display:flex;gap:12px;align-items:baseline;margin-top:10px!important;font-size:14px!important;color:var(--ink)!important;max-width:980px}
+.apa-line span{flex:1;padding-left:2.2em;text-indent:-2.2em;line-height:1.6}
+.apa-line button{flex:none;font-size:12px;color:var(--muted)}
+.apa-small{font-size:13px!important;line-height:1.55;margin:6px 0 8px!important;padding-left:2em;text-indent:-2em;color:var(--ink)!important}
+.apa-small .link{font-size:12px;color:var(--muted);text-indent:0}
+.batch-apa{display:block;margin:8px 0 0;font-size:12px;color:var(--muted)}
+.batch-apa small{font-size:11px;margin-left:6px}
+.batch-apa textarea{margin-top:4px;min-height:0;font-size:13px;line-height:1.5}
+#gen-apa{margin:-6px 0 14px;font-size:13px}

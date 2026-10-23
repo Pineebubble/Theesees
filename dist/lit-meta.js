@@ -74,4 +74,62 @@ function findDuplicate(papers,c){
  const d=normDOI(c.doi),t=String(c.title||'').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
  return papers.find(p=>(d&&normDOI(p.doi)===d)||(t&&String(p.title||'').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'')===t))||null;
 }
-if(typeof module!=='undefined')module.exports={findDOIs,normDOI,usableTitle,usableAuthor,titleFromItems,crossrefToPaper,openalexToPaper,titleSimilarity,matchScore,candidateScore,findDuplicate};
+/* ---------- APA 7 references ----------
+   Built from a CSL-style record (what Crossref returns): type, author, editor, title, subtitle, container-title,
+   volume, issue, page, publisher, issued, DOI. *Asterisks* mark italics (also valid Markdown). Titles keep the
+   capitalisation they were given; APA's sentence case for article and book titles is left to you. */
+const CSL_KEYS=['type','author','editor','title','subtitle','container-title','volume','issue','page','publisher','issued','DOI'];
+const pickCSL=m=>Object.fromEntries(CSL_KEYS.filter(k=>m?.[k]!=null&&!(Array.isArray(m[k])&&!m[k].length)).map(k=>[k,m[k]]));
+function initials(given){return String(given).split(/\s+/).filter(Boolean).map(w=>w.split('-').map(x=>x.replace(/\.$/,'')).filter(Boolean).map(x=>x[0].toUpperCase()+'.').join('-')).join(' ');}
+function apaName(n,initialsFirst=false){
+ if(n.literal)return n.literal;
+ const given=n.given||'',family=n.family||'';
+ if(!family)return given;
+ if(!given)return family;
+ if(cjk.test(family+given))return family+given; // Chinese/Japanese/Korean names are given in full
+ return initialsFirst?`${initials(given)} ${family}`:`${family}, ${initials(given)}`;
+}
+function apaJoin(names,amp=', & '){
+ if(names.length<=1)return names[0]||'';
+ if(names.length===2)return amp===', & '?`${names[0]}, & ${names[1]}`:`${names[0]} & ${names[1]}`;
+ if(names.length>20)return `${names.slice(0,19).join(', ')}, . . . ${names.at(-1)}`;
+ return `${names.slice(0,-1).join(', ')}${amp}${names.at(-1)}`;
+}
+const endDot=s=>/[.?!]$/.test(s)?s:s+'.';
+function apaFromCSL(m){
+ const title=[(m.title||[])[0],(m.subtitle||[])[0]].filter(Boolean).join(': ').replace(/\s+/g,' ').trim();
+ const container=String((m['container-title']||[])[0]||'').trim(),type=m.type||'';
+ const year=m.issued?.['date-parts']?.[0]?.[0]||'n.d.';
+ const authors=(m.author||[]).map(n=>apaName(n)),editors=(m.editor||[]).map(n=>apaName(n));
+ const pages=String(m.page||'').replace(/\s*[-‐–]\s*/g,'–'),doi=m.DOI?` https://doi.org/${m.DOI}`:'';
+ const publisher=/^(portico|crossref)$/i.test(m.publisher||'')?'':String(m.publisher||'').trim();
+ const chapterLike=/chapter|proceedings-article|reference-entry|book-section|book-part/.test(type);
+ const bookLike=/^(book|monograph|edited-book|reference-book|book-set|book-series)$/.test(type)||(!container&&!chapterLike&&type!=='journal-article');
+ const eds=n=>n.length>1?'Eds.':'Ed.';
+ // Authors lead; an edited book with no authors is led by its editors; with neither, the title leads.
+ let lead=authors.length?endDot(apaJoin(authors)):(!chapterLike&&editors.length?`${apaJoin(editors)} (${eds(editors)}).`:'');
+ const t=bookLike?`*${title}*`:title;
+ let ref;
+ if(!lead)ref=`${endDot(t)} (${year}).`;else ref=`${lead} (${year}). ${endDot(t)}`;
+ if(type==='journal-article'||(!bookLike&&!chapterLike&&container)){
+  ref+=container?` *${container}*${m.volume?`, *${m.volume}*`:''}${m.issue?`(${m.issue})`:''}${pages?`, ${pages}`:''}.`:'';
+ }else if(chapterLike){
+  const edited=(m.editor||[]).map(n=>apaName(n,true));
+  ref+=` In ${edited.length?`${edited.length===2?edited.join(' & '):apaJoin(edited)} (${eds(edited)}), `:''}*${container||'[Book title]'}*${pages?` (pp. ${pages})`:''}.${publisher?` ${publisher}.`:''}`;
+ }else if(publisher)ref+=` ${publisher}.`;
+ return (ref+doi).replace(/\s+/g,' ').replace(/\.\./g,'.').trim();
+}
+// Turn a paper's own fields into a CSL-style record when there is nothing better (no DOI record).
+function paperToCSL(p){
+ let parts=String(p.author||'').split(/\s*;\s*|\s+&\s+|\s+and\s+/).filter(Boolean),names=[];
+ for(const part of parts){
+  const bits=part.split(/\s*,\s*/).filter(Boolean);
+  // "Smith, J., Doe, A." pairs a surname with initials; "Jane Smith, John Doe" lists full names.
+  if(bits.length>=2&&bits.length%2===0&&bits.filter((b,i)=>i%2).every(b=>/^([A-Z]\.?\s?-?)+$/.test(b)))for(let i=0;i<bits.length;i+=2)names.push({family:bits[i],given:bits[i+1]});
+  else for(const b of bits){const w=b.trim().split(/\s+/);names.push(w.length>1&&!cjk.test(b)?{family:w.at(-1),given:w.slice(0,-1).join(' ')}:{literal:b.trim()});}
+ }
+ return {type:p.journal?'journal-article':'',author:names,title:[p.title],'container-title':p.journal?[p.journal]:[],issued:/^\d{4}/.test(p.year||'')?{'date-parts':[[Number(String(p.year).slice(0,4))]]}:undefined,DOI:p.doi||undefined};
+}
+const apaPlain=s=>String(s||'').replace(/\*([^*]+)\*/g,'$1');
+
+if(typeof module!=='undefined')module.exports={findDOIs,normDOI,usableTitle,usableAuthor,titleFromItems,crossrefToPaper,openalexToPaper,titleSimilarity,matchScore,candidateScore,findDuplicate,pickCSL,apaFromCSL,paperToCSL,apaPlain};
