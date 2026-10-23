@@ -18,12 +18,12 @@ source=source.replace("render();if(storageProblem)toast('Could not read existing
 vm.runInContext(source,context);
 const run = code => vm.runInContext(code,context);
 (async()=>{
- run("data={papers:[{id:'p',title:'Test PDF',author:'',year:'',text:'One. Quote. End.',keywords:[],pdfName:'test.pdf',status:'To read'}],passages:[{id:'h',paperId:'p',quote:'Quote.',location:'p.1',start:5,end:11}],keywords:[],threads:[],trash:[]};currentPaper='p';page='reader';getPDF=async()=>new Blob(['fixture'],{type:'application/pdf'});renderReader();");
+ run("data={papers:[{id:'p',title:'Test PDF',author:'',year:'',text:'One. Quote. End.',keywords:[],pdfName:'test.pdf',status:'To read'}],passages:[{id:'h',paperId:'p',quote:'Quote.',location:'p.1',start:5,end:11}],keywords:[],threads:[],trash:[]};currentPaper='p';page='reader';getPDF=async()=>new Blob(['fixture'],{type:'application/pdf'});var mountedPDF=null;mountPDFReader=(file,paper)=>{mountedPDF=paper.id;};renderReader();");
  await new Promise(resolve=>setImmediate(resolve));
  assert(!elements.get('#main').innerHTML.includes('id="source-text"'));
  assert(elements.get('#main').innerHTML.includes('id="pdf-preview"'));
  assert(elements.get('#record-pane').innerHTML.includes('Paste a passage'));
- assert(elements.get('#pdf-preview').innerHTML.includes('Full-screen PDF'));
+ assert.equal(run('mountedPDF'),'p');
  run('setPDFView(true)');
  assert(elements.get('#pdf-preview').classList.contains('pdf-focused'));
  run('setPDFView(false)');

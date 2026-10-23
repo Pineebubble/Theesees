@@ -1,0 +1,34 @@
+/* PDF reader (PDF.js): page stack, selectable text layer and passage highlights. */
+#pdf-preview{position:relative}
+.pdf-toolbar{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-bottom:10px}
+.pdf-file{flex:1 1 160px;min-width:0;overflow-wrap:anywhere;margin:0!important}
+.pdf-pageinfo{font:10px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.pdf-toolbar .actions{gap:4px}
+.pdf-toolbar button{font-size:12px;padding:6px 10px;min-width:32px}
+.pdf-toolbar a{font-size:12px;color:inherit;margin-left:6px}
+.pdf-pages{height:78vh;min-height:420px;overflow:auto;background:#ecebe7;padding:14px 14px 28px;display:flex;flex-direction:column;align-items:center;gap:22px;outline:0}
+.pdf-page{position:relative;flex:none;background:#fff;box-shadow:0 1px 3px #1b1b1922;isolation:isolate}
+.pdf-page canvas{position:absolute;inset:0;display:block}
+.pdf-hl{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply}
+.pdf-mark{position:absolute;background:var(--c-lemon,#f6e04a);border-radius:1px}
+.pdf-mark.approx{background:#ffd08a}
+.pdf-mark.active{background:#ffb199}
+.pdf-mark.flash{animation:pdf-flash .6s ease-in-out 3}
+@keyframes pdf-flash{50%{background:var(--c-coral,#ff6a4a)}}
+.pdf-page-no{position:absolute;right:0;bottom:-18px;font:9px var(--mono,monospace);letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.pdf-save-selection{position:absolute;z-index:20;font-size:12px;padding:7px 12px;box-shadow:4px 4px 0 var(--c-lemon,#f6e04a)}
+.pdf-save-selection[hidden]{display:none}
+.pdf-tip{font-size:11px;color:var(--muted);margin:8px 0 0}
+.pdf-error{padding:30px;background:#fff}
+#pdf-preview.pdf-focused .pdf-pages,#pdf-preview:fullscreen .pdf-pages{flex:1;height:auto;min-height:0}
+#pdf-preview.pdf-focused .pdf-tip,#pdf-preview:fullscreen .pdf-tip{display:none}
+/* Text layer, following PDF.js 3.11's viewer styles: invisible text positioned over the canvas for selection. */
+.textLayer{position:absolute;inset:0;overflow:hidden;opacity:1;line-height:1;text-align:initial;-webkit-text-size-adjust:none;text-size-adjust:none;forced-color-adjust:none;transform-origin:0 0;z-index:2}
+.textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0% 0%}
+.textLayer span.markedContent{top:0;height:0}
+.textLayer ::selection{background:#5fb0e866}
+.textLayer br::selection{background:transparent}
+.textLayer .endOfContent{display:block;position:absolute;inset:100% 0 0;z-index:-1;cursor:default;user-select:none}
+.textLayer .endOfContent.active{top:0}
+@media(max-width:650px){.pdf-pages{height:70vh;padding:8px 8px 24px}.pdf-toolbar a{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.pdf-mark.flash{animation:none;background:var(--c-coral,#ff6a4a)}}

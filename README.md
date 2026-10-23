@@ -33,7 +33,8 @@ This repository contains application code and design assets, not personal papers
 
 - Editable colored keyword folders and connections; links to literature.
 - Pull-out literature drawer; editable title, authors, and year.
-- PDF reading and expanded view, pasted-text reading, editable source passages.
+- PDF reading with PDF.js: select text in a PDF to save it as a passage (page filled in automatically); saved passages are found and highlighted in the PDF, and “Show source” jumps to them. Matching ignores line breaks, hyphenation, ligatures and punctuation, and falls back to an approximate match for lightly edited quotes. Scanned PDFs without a text layer cannot be searched (no OCR).
+- Pasted-text reading and editable source passages.
 - Source-linked discussions with paper and keyword filters.
 - Original imported conversations preserved alongside new comments and pasted AI replies.
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
@@ -43,7 +44,7 @@ This repository contains application code and design assets, not personal papers
 - Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
 - Zotero CSL-JSON bibliography import, not live Zotero synchronization.
 
-No live AI calls, automatic conclusions, PDF OCR, or automatic source verification. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
+No live AI calls, automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
 
 ## Developer checks
 
@@ -56,12 +57,15 @@ node blocks-check.cjs
 node trash-check.cjs
 node claims-check.cjs
 node outline-check.cjs
+node pdf-check.cjs
 ```
 
-These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, and outline ordering and Markdown export. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
+These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, and PDF passage matching. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
 
 `?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
 
 ## Fonts
 
 Figtree and IBM Plex Mono are bundled in `dist/fonts` under the SIL Open Font License 1.1 (licence texts included there), so the app makes no font requests to the internet.
+
+PDF.js 3.11.174 (Mozilla, Apache 2.0) is bundled in `dist/vendor/pdfjs` and loaded with `isEvalSupported: false`, which closes CVE-2024-4367 for this version.

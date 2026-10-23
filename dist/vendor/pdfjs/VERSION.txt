@@ -1,0 +1,2 @@
+pdfjs-dist 3.11.174 (Mozilla PDF.js), Apache License 2.0 — see LICENSE.
+Loaded with isEvalSupported:false (mitigates CVE-2024-4367).
