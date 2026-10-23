@@ -38,7 +38,8 @@ This repository contains application code and design assets, not personal papers
 - Original imported conversations preserved alongside new comments and pasted AI replies.
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
 - Key-thought markers, editing, and Trash with 30-day recovery.
-- **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no keyword).
+- **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no keyword, not in the outline).
+- **Outline**: arrange thoughts into numbered chapters and sections by drag-and-drop or menus, add a one-line argument per part, and export Markdown with evidence quotations, author–year–page citations, and a reference list. Citations are a simple author–year style, not a full citation style such as APA.
 - Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
 - Zotero CSL-JSON bibliography import, not live Zotero synchronization.
 
@@ -54,9 +55,10 @@ node discussion-check.cjs
 node blocks-check.cjs
 node trash-check.cjs
 node claims-check.cjs
+node outline-check.cjs
 ```
 
-These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, and thoughts/evidence links. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
+These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, and outline ordering and Markdown export. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
 
 `?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
 
