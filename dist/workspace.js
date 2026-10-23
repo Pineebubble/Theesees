@@ -49,7 +49,7 @@ function navigate(v){page=v;linking=false;linkStart=null;selection=null;render()
 $$('[data-view]').forEach(b=>b.onclick=()=>navigate(b.dataset.view));$('.brand').onclick=e=>{e.preventDefault();navigate('library');};
 // The colour of the first theme in a list of theme ids; grey when there is none. Used for the coloured left edges.
 function themeColor(ids){const k=(ids||[]).map(getKeyword).find(Boolean);return k?colors[k.color%colors.length]:'var(--c-stone)';}
-function render(){document.body.classList.remove('pdf-focused-body');$('#main').style?.removeProperty?.('--theme');syncReadingView();counts();if(page==='map'||page==='library'){page='library';renderLibrary();}else if(page==='archive')renderArchive();else if(page==='reader')renderReader();else if(page==='thoughts')renderThoughts();else if(page==='claim')renderClaim();else if(page==='outline')renderOutline();else renderThread();}
+function render(){document.body.classList.remove('pdf-focused-body');$('#main').style?.removeProperty?.('--theme');syncReadingView();counts();if(page==='map'||page==='library'){page='library';renderLibrary();}else if(page==='archive')renderArchive();else if(page==='reader')renderReader();else if(page==='thoughts')renderThoughts();else if(page==='claim')renderClaim();else if(page==='outline')renderOutline();else if(page==='about')renderAbout();else renderThread();}
 // The theme map now lives at the top of the Literature page.
 let themeMapOpen=(()=>{try{return localStorage.getItem('theesees-map-open')!=='false';}catch{return true;}})();
 function themeMapHTML(){

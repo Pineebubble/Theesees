@@ -49,6 +49,7 @@ This repository contains application code and design assets, not personal papers
 - Literature is grouped by each paper's first theme, in theme-map order.
 - Theme colours carry through: thoughts, outline cards, saved passages and discussion quotes are edged in the colour of their (first) theme.
 - **APA 7 references** for each paper: built from the Crossref record during import (journal, volume, issue, pages, publisher, editors, DOI) or from the paper's own fields, shown with italics on the paper and in the Literature stack, editable in Edit details (with Generate), copyable with italics, filled in for older papers from the Literature ⋯ menu, and used for the Outline export's reference list. Titles keep their capitalisation; APA's sentence case for article and book titles is left to you.
+- **About** page: what the tool is for, an editable card about the researcher (saved with your records), a few numbers about your reading and writing, and some small celebrations (marking a paper Read or a thought Defensible).
 - Zotero CSL-JSON bibliography import, not live Zotero synchronization.
 
 No live AI calls (the optional Crossref/OpenAlex lookups are the only network requests), automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
