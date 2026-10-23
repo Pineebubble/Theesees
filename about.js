@@ -33,6 +33,7 @@ function renderAbout(){
  </section>
  <div class="about-grid">
   <section class="about-me"><div class="about-me-head"><p class="about-kicker">The researcher</p><button id="edit-about" class="link">Edit</button></div>
+   <figure class="about-photo"><img src="assets/researcher.jpg" alt="The researcher, smiling, with pink-tipped hair and an iced drink under green leaves" width="480" height="640"></figure>
    <h2>${esc(a.name)}</h2><p class="about-field">${esc(a.field)}</p><p>${esc(a.bio)}</p>
    ${a.question?`<p class="about-q"><span>Currently asking</span>${esc(a.question)}</p>`:'<p class="about-q about-q-empty"><span>Currently asking</span>Add your research question under Edit.</p>'}
    <p class="about-fuel"><span>Runs on</span>${esc(a.fuel)}</p></section>
