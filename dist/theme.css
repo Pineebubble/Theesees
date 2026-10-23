@@ -267,3 +267,10 @@ dialog::backdrop{background:#1b1b1966;backdrop-filter:none}
  .tb-text{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){.tb-block,.tb-label{transition:none}}
+
+/* ---------- Long passages: collapse / expand ---------- */
+.collapsible{position:relative}
+.collapsible.collapsed{max-height:var(--collapse-h);overflow:hidden;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+.quote-preview blockquote{display:block;-webkit-line-clamp:unset;overflow:visible}
+.collapse-toggle,.collapse-toggle:hover{display:inline-block;background:none;padding:2px 0;margin:-4px 0 8px;font:10px var(--mono);text-transform:uppercase;letter-spacing:.9px;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.collapse-toggle:hover{color:#b2381f}

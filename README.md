@@ -34,7 +34,8 @@ This repository contains application code and design assets, not personal papers
 - Editable colored keyword folders and connections; links to literature.
 - Pull-out literature drawer; editable title, authors, and year.
 - PDF reading with PDF.js: select text in a PDF to save it as a passage (page filled in automatically); saved passages are found and highlighted in the PDF, and “Show source” jumps to them. Matching ignores line breaks, hyphenation, ligatures and punctuation, and falls back to an approximate match for lightly edited quotes. Scanned PDFs without a text layer cannot be searched (no OCR).
-- Pasted-text reading and editable source passages.
+- Pasted-text reading and editable source passages. Long passages collapse to a few lines with “Show full passage”.
+- Everything you add can be edited and deleted: keywords and connections, papers (details, DOI, text, keywords, attached PDF), passages, discussions (title, text, status, platform), comments (including their linked passage), thoughts and evidence links, and outline parts.
 - Source-linked discussions with paper and keyword filters.
 - Original imported conversations preserved alongside new comments and pasted AI replies.
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
