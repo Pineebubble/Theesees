@@ -29,6 +29,9 @@
 .outline-claim-actions{display:flex;gap:4px;align-items:center}
 .outline-claim-actions button{font-size:11px;padding:4px 8px}
 .outline-claim-actions select{width:130px;font-size:11px;padding:5px}
+.outline-pool .outline-claim{grid-template-columns:16px minmax(0,1fr)}
+.outline-pool .outline-claim-actions{grid-column:2}
+.outline-pool .outline-claim-actions select{width:100%}
 .outline-placement{display:flex;align-items:center;gap:8px;margin:0}
 .outline-placement select{width:200px!important}
 .outline-export-options{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
