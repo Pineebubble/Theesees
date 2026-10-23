@@ -25,7 +25,7 @@ async function fetchJSON(url){
 }
 async function lookupDOI(doi){
  const cr=(await politeFetch(`${CROSSREF}/${encodeURIComponent(doi)}`))?.message;
- if(cr)return {...crossrefToPaper(cr),source:'Crossref'};
+ if(cr)return {...crossrefToPaper(cr),source:'Crossref',csl:pickCSL(cr)};
  if(!openalexKey())return null;
  const oa=await politeFetch(openalexURL(`/doi:${encodeURIComponent(normDOI(doi))}?select=doi,display_name,publication_year,authorships,primary_location`));
  return oa?.display_name?{...openalexToPaper(oa),source:'OpenAlex'}:null;
@@ -37,7 +37,7 @@ async function searchOnline(title,author){
  const sn=surname(author),row={title,author},seen=new Set();
  const rank=list=>list.filter(c=>{const k=normDOI(c.doi)||c.title.toLowerCase();if(!c.title||seen.has(k))return false;seen.add(k);return true;})
   .map(c=>({...c,score:candidateScore(row,c)})).filter(c=>c.score>=0.3);
- const cr=rank(((await politeFetch(`${CROSSREF}?rows=5&select=DOI,title,subtitle,author,issued,published,container-title&query.bibliographic=${encodeURIComponent(sn.length>2?`${title} ${sn}`:title)}`))?.message?.items||[]).map(m=>({...crossrefToPaper(m),source:'Crossref'})));
+ const cr=rank(((await politeFetch(`${CROSSREF}?rows=5&select=DOI,title,subtitle,author,editor,issued,published,container-title,type,volume,issue,page,publisher&query.bibliographic=${encodeURIComponent(sn.length>2?`${title} ${sn}`:title)}`))?.message?.items||[]).map(m=>({...crossrefToPaper(m),source:'Crossref',csl:pickCSL(m)})));
  cr.sort((a,b)=>b.score-a.score);
  if(confidentMatch(title,cr[0])||!openalexKey())return cr.slice(0,3);
  const oa=rank(((await politeFetch(openalexURL(`?per-page=5&select=doi,display_name,publication_year,authorships,primary_location&search=${encodeURIComponent(title)}`)))?.results||[]).map(w=>({...openalexToPaper(w),source:'OpenAlex'})));
@@ -51,7 +51,8 @@ function confidentMatch(title,c){
 function applyFound(row,c,how){
  // Keep the PDF's title when it is the fuller version of the found one (e.g. the record has no subtitle).
  const fuller=row.title&&c.title&&row.title.length>c.title.length&&row.title.toLowerCase().startsWith(c.title.toLowerCase());
- Object.assign(row,{title:fuller?row.title:c.title||row.title,author:c.author||row.author,year:c.year||row.year,doi:c.doi||row.doi,journal:c.journal||row.journal});
+ Object.assign(row,{title:fuller?row.title:c.title||row.title,author:c.author||row.author,year:c.year||row.year,doi:c.doi||row.doi,journal:c.journal||row.journal,csl:c.csl||null});
+ if(fuller&&row.csl)row.csl={...row.csl,title:[row.title],subtitle:[]};
  row.source.push(how);
 }
 async function readPDFDetails(file){
@@ -114,17 +115,19 @@ function openBatchImport(){
  });
  $('#modal').addEventListener('close',()=>$('#modal').classList.remove('wide'),{once:true});
 }
+// APA for a review row: from the Crossref record when there is one, else from the row's own fields.
+function rowAPA(r){return apaFromCSL(r.csl||paperToCSL(r));}
 function suggestionsHTML(r,i){
  return `${(r.candidates||[]).map((c,j)=>`<button type="button" data-apply="${i}:${j}">${esc(c.title)}<small>${esc([c.year,c.author.split(',')[0],c.journal,c.source].filter(Boolean).join(' · '))}</small></button>`).join('')}<button type="button" class="batch-find" data-find="${i}">Find online</button>`;
 }
 function batchReview(rows,themes){
  const box=$('#modal-body');
- box.innerHTML=`<p>Check the details, untick anything you don’t want, then add. ${themes.length?`Themes: ${themes.map(id=>esc(getKeyword(id)?.title||'')).join(', ')}.`:'No themes chosen; you can add them later.'}</p><form class="batch-review"><div class="batch-table">${rows.map((r,i)=>`<div class="batch-row${r.dup?' is-dup':''}"><label class="batch-pick"><input type="checkbox" name="pick" value="${i}" ${r.dup||!r.title?'':'checked'} aria-label="Add this paper"></label><div class="batch-fields"><input name="title-${i}" value="${esc(r.title)}" aria-label="Title" placeholder="Title"><div class="batch-sub"><input name="author-${i}" value="${esc(r.author)}" aria-label="Authors" placeholder="Authors"><input name="year-${i}" value="${esc(r.year)}" aria-label="Year" placeholder="Year"><input name="doi-${i}" value="${esc(r.doi)}" aria-label="DOI" placeholder="DOI"></div><small>${esc([r.file?.name,r.journal,r.source.join(' + ')].filter(Boolean).join(' · '))}${r.dup?` · <b>Already in your library as “${esc(r.dup.title)}”</b>`:''}${r.warn?` · <b>${esc(r.warn)}</b>`:''}</small><div class="batch-suggest" id="sugg-${i}">${suggestionsHTML(r,i)}</div></div></div>`).join('')}</div><div class="actions"><button type="submit" class="primary" id="batch-add-go">Add papers</button></div></form>`;
+ box.innerHTML=`<p>Check the details, untick anything you don’t want, then add. ${themes.length?`Themes: ${themes.map(id=>esc(getKeyword(id)?.title||'')).join(', ')}.`:'No themes chosen; you can add them later.'}</p><form class="batch-review"><div class="batch-table">${rows.map((r,i)=>`<div class="batch-row${r.dup?' is-dup':''}"><label class="batch-pick"><input type="checkbox" name="pick" value="${i}" ${r.dup||!r.title?'':'checked'} aria-label="Add this paper"></label><div class="batch-fields"><input name="title-${i}" value="${esc(r.title)}" aria-label="Title" placeholder="Title"><div class="batch-sub"><input name="author-${i}" value="${esc(r.author)}" aria-label="Authors" placeholder="Authors"><input name="year-${i}" value="${esc(r.year)}" aria-label="Year" placeholder="Year"><input name="doi-${i}" value="${esc(r.doi)}" aria-label="DOI" placeholder="DOI"></div><small>${esc([r.file?.name,r.journal,r.source.join(' + ')].filter(Boolean).join(' · '))}${r.dup?` · <b>Already in your library as “${esc(r.dup.title)}”</b>`:''}${r.warn?` · <b>${esc(r.warn)}</b>`:''}</small><div class="batch-suggest" id="sugg-${i}">${suggestionsHTML(r,i)}</div><label class="batch-apa">APA <small id="apa-src-${i}">${r.csl?'from Crossref':'generated — check'}</small><textarea name="apa-${i}" rows="2">${esc(r.autoApa=rowAPA(r))}</textarea></label></div></div>`).join('')}</div><div class="actions"><button type="submit" class="primary" id="batch-add-go">Add papers</button></div></form>`;
  const form=box.querySelector('form'),btn=$('#batch-add-go');
  const count=()=>{const n=form.querySelectorAll('input[name="pick"]:checked').length;btn.textContent=n?`Add ${plural(n,'paper')}`:'Nothing selected';btn.disabled=!n;};
  form.onchange=count;count();
  form.addEventListener('click',async e=>{
-  const set=(i,c)=>{for(const k of ['title','author','year','doi'])if(c[k])form.elements[`${k}-${i}`].value=c[k];form.querySelector(`input[name="pick"][value="${i}"]`).checked=true;count();};
+  const set=(i,c)=>{for(const k of ['title','author','year','doi'])if(c[k])form.elements[`${k}-${i}`].value=c[k];Object.assign(rows[i],{csl:c.csl||null,journal:c.journal||rows[i].journal});form.elements[`apa-${i}`].value=rows[i].autoApa=rowAPA({...c,csl:c.csl});$(`#apa-src-${i}`).textContent=c.csl?'from Crossref':'generated — check';form.querySelector(`input[name="pick"][value="${i}"]`).checked=true;count();};
   const a=e.target.closest('[data-apply]');
   if(a){const [i,j]=a.dataset.apply.split(':').map(Number),c=rows[i].candidates[j];set(i,c);$(`#sugg-${i}`).innerHTML=`<span class="batch-ok">Filled from ${esc(c.source)} — check it</span><button type="button" class="batch-find" data-find="${i}">Find online again</button>`;return;}
   const f=e.target.closest('[data-find]');if(!f)return;
@@ -139,7 +142,11 @@ function batchReview(rows,themes){
   const fd=new FormData(form),added=[],failed=[];
   for(const i of fd.getAll('pick').map(Number)){
    const r=rows[i],title=fd.get('title-'+i).trim();if(!title)continue;
-   const p={id:uid(),title,author:fd.get('author-'+i).trim(),year:fd.get('year-'+i).trim(),doi:normDOI(fd.get('doi-'+i))&&fd.get('doi-'+i).trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,''),status:'To read',relevance:'',keywords:[...themes],text:'',pdfName:''};
+   const p={id:uid(),title,author:fd.get('author-'+i).trim(),year:fd.get('year-'+i).trim(),doi:normDOI(fd.get('doi-'+i))&&fd.get('doi-'+i).trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,''),journal:r.journal||'',status:'To read',relevance:'',keywords:[...themes],text:'',pdfName:''};
+   // Keep a hand-edited APA reference; otherwise rebuild it so it reflects any corrected title, authors or year.
+   const apa=fd.get('apa-'+i).trim(),same=r.csl&&normDOI(r.csl.DOI)===normDOI(p.doi)&&title===r.title&&p.author===r.author&&p.year===r.year;
+   if(r.csl&&normDOI(r.csl.DOI)===normDOI(p.doi))p.csl=r.csl;
+   p.apa=apa!==r.autoApa?apa:same?r.autoApa:apaFromCSL(paperToCSL(p));p.apaSource=apa!==r.autoApa?'edited':same?'Crossref':'generated';
    if(r.file){try{await putPDF(p.id,r.file);p.pdfName=r.file.name;}catch{failed.push(r.file.name);}}
    added.push(p);
   }
