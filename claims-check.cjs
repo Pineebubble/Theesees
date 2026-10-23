@@ -52,4 +52,10 @@ assert.equal(run('data.claims.length'),0);assert.equal(run('data.trash.at(-1).ty
 run(`restoreClaim(data.trash.pop());`);
 assert.equal(run('data.claims[0].text'),'Revised wording');
 assert.equal(run('JSON.parse(JSON.stringify(data)).claims[0].evidence.length'),2);
+// Literature filter: a thought belongs to a paper through its evidence or through the discussion it came from.
+run(`data.papers.push({id:'q',title:'Other paper',keywords:[]});data.passages.push({id:'hq',paperId:'q',quote:'Other quote',location:'p. 1'});data.threads.push({id:'tq',title:'Chat about q',blocks:[],passageIds:['hq'],paperIds:[]});
+ data.claims.push(newClaim('Via evidence',{evidence:[{passageId:'hq',relation:'supports'}]}),newClaim('Via discussion',{origins:[{threadId:'tq',blockId:'z'}]}),newClaim('Unrelated'));`);
+run(`claimPaper='q';`);
+assert.equal(run("data.claims.filter(claimFilters).map(c=>c.text).join()"),'Via evidence,Via discussion');
+run(`claimPaper='all';`);
 console.log('PASS: promote comment with origin and source, no duplicate promotion, evidence relations, trashed-passage links kept, gaps, revisions, validation, save rollback, trash restore.');
