@@ -274,3 +274,112 @@ dialog::backdrop{background:#1b1b1966;backdrop-filter:none}
 .quote-preview blockquote{display:block;-webkit-line-clamp:unset;overflow:visible}
 .collapse-toggle,.collapse-toggle:hover{display:inline-block;background:none;padding:2px 0;margin:-4px 0 8px;font:10px var(--mono);text-transform:uppercase;letter-spacing:.9px;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
 .collapse-toggle:hover{color:#b2381f}
+
+/* =====================================================================
+   Quiet interface. Colour belongs to content (keywords, thoughts, papers,
+   highlights); the interface around it is black, white and grey.
+   ===================================================================== */
+:root{--muted:#8a8984;--line:#ecebe8;--wash:#fafaf8;--danger:#c0392b}
+
+/* Header and navigation: plain words, the current page in black with an underline. */
+.topbar{padding:30px 0 0;align-items:baseline}
+.brand{font:600 22px/1 var(--sans);letter-spacing:-.5px}
+.brand span{font:400 12px/1 var(--sans);letter-spacing:0;text-transform:none;color:var(--muted);margin-top:7px}
+.local-label{display:none}
+#export,#export:hover{box-shadow:none;background:none;padding:6px 0;color:var(--muted);font-size:14px}
+#export:hover{color:var(--ink)}
+.tabs{gap:28px;padding:30px 0 0;align-items:baseline;border-bottom:1px solid var(--line)}
+.tabs button,.tabs button[data-view],.tabs button[data-trash],.tabs button:last-child,.tabs button.active{background:none!important;box-shadow:none;border-radius:0;padding:6px 0 14px;min-width:0;font:400 15px/1.2 var(--sans);text-transform:none;letter-spacing:0;color:var(--muted);bottom:auto;filter:none;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink);background:none!important}
+.tabs button.active{color:var(--ink);box-shadow:inset 0 -2px 0 var(--ink)}
+.tabs button:last-child{margin-left:auto}
+.tabs span{font:400 12px var(--sans);opacity:1;color:#b9b8b2;margin-left:5px}
+main{border-radius:0}
+footer{font:12px/1.6 var(--sans);letter-spacing:0;color:var(--muted)}
+
+/* Buttons: one black primary per view, quiet text buttons otherwise, destructive ones in red. */
+button{background:none;color:var(--ink);padding:7px 10px;border-radius:4px;font-size:14px}
+button:hover{background:#f1f1ee;color:var(--ink)}
+button.primary,button.warm{background:var(--ink);color:#fff;padding:8px 15px}
+button.primary:hover,button.warm:hover{background:#3b3b38;color:#fff}
+button:disabled:hover{background:none}
+.danger{color:var(--danger)}
+.danger:hover{background:#fbeae6!important;color:var(--danger)!important}
+input,textarea,select{border-color:#e3e2de;border-radius:4px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--ink);outline-offset:-1px}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* "⋯" menus. */
+.more-menu{position:relative;display:inline-block}
+.more-menu>summary{list-style:none;cursor:pointer;padding:4px 10px 8px;border-radius:4px;font:600 18px/1 var(--sans);color:var(--muted);user-select:none}
+.more-menu>summary::-webkit-details-marker{display:none}
+.more-menu>summary:hover,.more-menu[open]>summary{background:#f1f1ee;color:var(--ink)}
+.more-items{position:absolute;right:0;top:calc(100% + 4px);z-index:40;display:flex;flex-direction:column;min-width:210px;padding:6px;background:#fff;border-radius:8px;box-shadow:0 12px 32px #1b1b1924,0 0 0 1px #1b1b190f}
+.more-items button{width:100%;text-align:left;padding:9px 10px;font-size:14px;white-space:nowrap}
+
+/* Type: four sizes (34 / 20 / 15 / 12-13), no uppercase mono labels. */
+.page-heading{padding:38px 34px 22px;border-bottom:0}
+.page-heading h1{font:600 34px/1.1 var(--display);letter-spacing:-.9px}
+.page-heading p{font-size:14px;color:var(--muted);margin-top:8px}
+.reader-heading{border-bottom:0;padding:30px 34px 10px}
+.reader-heading h1,.claim-heading .claim-text{font:600 28px/1.25 var(--display);letter-spacing:-.6px}
+.reader-heading .back,.link.back{font:400 13px var(--sans);text-transform:none;letter-spacing:0;color:var(--muted);text-decoration:none}
+.reader-heading .back:hover{color:var(--ink)}
+.section-top h2,.related-literature h2,.reading-toolbar h2,.keyword-panel h2,.outline-part-head h2,.modal-head h2,.empty h3,.outline-pool h2{font:600 20px/1.3 var(--display);letter-spacing:-.3px}
+.outline-part.level-2 h2{font-size:17px}
+.paper-title{font:600 26px/1.2 var(--display);letter-spacing:-.5px}
+.discussion-title-link,.claim-entry h2 .discussion-title-link{font:500 18px/1.4 var(--display);letter-spacing:-.2px}
+.eyebrow,.archive-count,.filing-caption,.outline-number,.drawer-hint,.map-toolbar small,.canvas-note,.kbar-count,.pdf-pageinfo,.collapse-toggle,.spine-tab,.drawer-front>span,.drawer-front small,.claim-gaps,.file-label small,.pdf-page-no,.number,.spine-number{font-family:var(--sans)!important;text-transform:none!important;letter-spacing:0!important}
+.eyebrow,.archive-count,.filing-caption,.outline-number,.drawer-hint,.map-toolbar small,.canvas-note,.pdf-pageinfo,.file-label small,.pdf-page-no{font-size:12px!important;color:var(--muted)}
+.kbar-count{font-size:12px!important}
+.claim-gaps{font-size:13px!important;color:var(--danger)!important}
+.collapse-toggle,.collapse-toggle:hover{font-size:13px!important;text-decoration:none;color:var(--muted)}
+.collapse-toggle:hover{color:var(--ink)}
+.spine-tab{font-size:12px!important}
+.drawer-front>span{font-size:13px!important;font-weight:600}
+
+/* Labels: badges become plain text, keyword tags a coloured dot plus text. */
+.badge,.badge.unlinked,.badge.claim-status{background:none;padding:0;margin-right:12px;font:400 13px var(--sans);text-transform:none;letter-spacing:0;color:var(--muted)}
+.badge.unlinked{color:var(--danger)}
+.badge.claim-status{color:var(--ink);font-weight:600}
+.keyword-tag,.drawer-file .file-tab{background:none!important;border:0!important;padding:2px 0;margin-right:10px;display:inline-flex;align-items:center;gap:6px;font:400 13px var(--sans)!important;text-transform:none;letter-spacing:0;color:var(--ink);box-shadow:none}
+.keyword-tag:before,.drawer-file .file-tab:before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:var(--tag,var(--tab-color,#ccc))}
+.keyword-tag:hover,.drawer-file .file-tab:hover{outline:0;background:none!important;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.relation-chip{background:none!important;padding:0;margin-right:12px;display:inline-flex;align-items:center;gap:6px;font:400 13px var(--sans);text-transform:none;letter-spacing:0;color:var(--ink)}
+.relation-chip:before{content:"";width:9px;height:9px;border-radius:50%;background:#ccc}
+.relation-chip.rel-supports:before{background:var(--c-teal)}
+.relation-chip.rel-challenges:before{background:var(--c-coral)}
+.relation-chip.rel-qualifies:before{background:var(--c-tangerine)}
+
+/* Fewer lines and boxes: whitespace separates; light wash only behind side panels. */
+.discussion-filters{background:none;border-bottom:0;padding:6px 34px 18px}
+.search-row{border-bottom:0;padding:6px 34px 18px}
+.map-area,.claim-evidence,.discussion-source,.source-pane{border-right:0}
+.map-toolbar{border-bottom:0}
+.canvas-note{border-top:0}
+.keyword-panel,.claim-side,.outline-pool,.discussion-source,.source-pane,.related-literature,.passage-composer{background:var(--wash)}
+.related-literature,.reader-meta{border-bottom:0}
+.note-area{border-top:0}
+.archive-entry{border-bottom:1px solid var(--line)}
+.outline-part.level-1{border-top:1px solid var(--line)}
+.passage{background:#fff;border-left:3px solid var(--c-lemon);box-shadow:inset 0 0 0 1px var(--line)}
+.passage.active{border-left-color:var(--c-coral)}
+.discussion-card,.evidence-card,.outline-claim,.conversation-turn{box-shadow:none;background:var(--wash)}
+.small-paper{border-left-width:3px}
+.small-paper:hover{background:var(--wash);color:var(--ink)}
+.small-paper:hover small{color:var(--muted)}
+.file-actions button,.file-actions button:hover{background:none}
+.file-actions button:hover{background:#ffffff99}
+.view-toggle button{box-shadow:none;color:var(--muted);font:400 14px var(--sans);text-transform:none;letter-spacing:0;padding:6px 8px;border-radius:4px}
+.view-toggle button[aria-pressed=true]{background:#f1f1ee;color:var(--ink);box-shadow:none}
+.key-thoughts{background:var(--wash)}
+.key-thoughts h3{font-size:15px}
+dialog{border-radius:10px;box-shadow:0 24px 64px #1b1b1933;padding:26px 28px}
+#toast{font:13px var(--sans);letter-spacing:0;border-radius:6px}
+.stacked-drawer+.drawer-front{border-radius:14px 0 0 0}
+/* Discussions: no decorative tape; list metadata reads as one line. */
+.thread-messages>.reply-block:after,.paper-message:after,.sticker-stack>.reply-block:after{display:none}
+.thread-messages>.reply-block,.paper-message,.sticker-stack>.reply-block{border-left-width:3px}
+.archive-entry-head .badge+.badge:before{content:"· ";color:var(--muted)}
+.archive-entry-head .badge{margin-right:6px}
+.claim-entry .badge+.badge:before,.claim-entry .badge+.relation-chip:before{content:none}
