@@ -447,3 +447,22 @@ dialog{border-radius:10px;box-shadow:0 24px 64px #1b1b1933;padding:26px 28px}
  .msg.ai-block>.block-actions{top:10px;right:14px;background:#f5f5f2}
  .paper-message.msg>.block-actions{top:0}
 }
+
+/* ---------- Filling the quiet places with useful information ---------- */
+.overview{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 0;padding:12px 0 0;font-size:13px;color:var(--muted)}
+.overview button{padding:2px 0;font-size:13px;color:var(--muted);background:none}
+.overview button:hover{background:none;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.overview button.needs{color:var(--danger)}
+.overview i{font-style:normal;margin:0 9px;color:#cfcec8}
+.panel-head{font:600 13px var(--sans);margin:22px 0 4px;color:var(--ink)}
+.panel-head small{font-weight:400;color:var(--muted);margin-left:4px}
+.panel-list{display:flex;flex-direction:column;margin:0}
+.panel-list button{display:block;width:100%;text-align:left;padding:9px 0;border-radius:0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.45;background:none}
+.panel-list button:hover{background:none;text-decoration:underline;text-underline-offset:3px}
+.panel-list small{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
+.panel-more{font-size:13px;margin-top:8px;color:var(--muted)}
+.keyword-panel .eyebrow{margin-bottom:0}
+.claim-side .panel-list button{font-size:14px}
+.heading-swatch{display:block;width:56px;height:10px;background:var(--tag);margin:0 0 14px}
+/* Boxes fit what they hold. */
+.source-text,.original-text-panel .source-text,.thread-source-paper{min-height:0}
