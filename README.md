@@ -6,7 +6,7 @@ A browser-local literature-reading and thinking workspace. Organize papers, conn
 
 1. On GitHub, choose **Code → Download ZIP**, then unzip it. Alternatively, clone this repository.
 2. Open `dist/prototype.html` in Chrome or Edge. No build, account, API key, or package installation is required.
-3. Keep the entire `dist` folder together: its scripts, styles, and illustration are required.
+3. Keep the entire `dist` folder together: its scripts and styles are required.
 
 For a consistent browser storage origin, use a local server if Python 3 is installed. In a terminal opened in the downloaded folder:
 
@@ -61,7 +61,3 @@ node outline-check.cjs
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, and outline ordering and Markdown export. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
 
 `?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
-
-## Illustration credit
-
-Footer artwork by **Sakura Tamagawa**, originally published in **The New York Times**, displayed from a user-supplied reference screenshot. This third-party artwork is not covered by any software license in this repository. No redistribution permission is asserted; obtain permission or replace it before distributing a product using it.
