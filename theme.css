@@ -472,3 +472,6 @@ dialog{border-radius:10px;box-shadow:0 24px 64px #1b1b1933;padding:26px 28px}
 .drawer-file.is-pulled{z-index:auto}
 .file-sheet:after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:36px;background:var(--file-color);pointer-events:none}
 .drawer-file.is-pulled .file-sheet{box-shadow:0 -6px 18px #1b1b1910}
+/* Literature grouped by theme: one tab per group, a little air between groups. */
+.drawer-file+.drawer-file.group-start{margin-top:-4px}
+.spine-tab small{margin-left:8px;opacity:.6;font-size:11px}
