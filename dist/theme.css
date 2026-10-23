@@ -626,7 +626,6 @@ dialog.lightbox::backdrop{background:#1b1b19d9}
 .about-path span{font-size:14px;line-height:1.5;color:var(--ink)}
 .about-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:start}
 .about-me,.about-stats{border:1px solid var(--line);border-radius:0;padding:22px;background:#fff}
-.about-me{background:var(--wash)}
 .about-me-head{display:flex;justify-content:space-between;align-items:baseline}
 .about-me h2{margin:0 0 4px;font-size:28px}
 .about-field{color:var(--muted);margin:0 0 14px}
@@ -662,3 +661,9 @@ dialog.lightbox::backdrop{background:#1b1b19d9}
 .passage{border-left-color:var(--theme,var(--c-stone))}
 .passage.active{border-left-color:var(--ink)}
 .outline-claim,.outline-claim.status-hunch,.outline-claim.status-developing,.outline-claim.status-defensible{border-left-color:var(--theme)}
+/* The researcher's photo, stuck onto the card with a flat round green sticker */
+.about-photo{float:right;position:relative;width:150px;margin:6px 4px 14px 22px;transform:rotate(3deg)}
+.about-photo img{display:block;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover}
+.about-photo::after{content:'';position:absolute;top:-11px;left:50%;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:#00aa35}
+.about-me::after{content:'';display:block;clear:both}
+@media (max-width:760px){.about-photo{width:110px}}
