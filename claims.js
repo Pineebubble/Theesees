@@ -4,6 +4,8 @@ data.claims ||= [];
 const claimStatuses=['Hunch','Developing','Defensible','Abandoned'];
 const relations={supports:'Supports',challenges:'Challenges',qualifies:'Qualifies'};
 let currentClaim=null,claimQuery='',claimStatus='All',claimKeyword='all',claimGap='All';
+// List or colour-block view; remembered per browser as a convenience only.
+let claimView=(()=>{try{return localStorage.getItem('theesees-thought-view')==='blocks'?'blocks':'list';}catch{return 'list';}})();
 const getClaim=id=>data.claims.find(c=>c.id===id);
 function liveEvidence(c){return c.evidence.map(e=>({...e,passage:data.passages.find(h=>h.id===e.passageId)})).filter(e=>e.passage&&getPaper(e.passage.paperId));}
 function claimGaps(c){
@@ -64,9 +66,11 @@ function claimFilters(c){
  const gaps=claimGaps(c);
  return c.text.toLowerCase().includes(claimQuery.toLowerCase())&&(claimStatus==='All'||c.status===claimStatus)&&(claimKeyword==='all'||c.keywords.includes(claimKeyword))&&(claimGap==='All'||(claimGap==='Needs work'?gaps.length:claimGap==='From conversations'?c.origins.length:claimGap==='Not in outline'?typeof placementOf==='function'&&!placementOf(c.id):gaps.includes(claimGap)));
 }
+const viewToggle=()=>`<div class="view-toggle" role="group" aria-label="Thought view">${[['list','List'],['blocks','Blocks']].map(([v,l])=>`<button data-claim-view="${v}" aria-pressed="${claimView===v}">${l}</button>`).join('')}</div>`;
 function renderThoughts(){
  if(claimKeyword!=='all'&&!getKeyword(claimKeyword))claimKeyword='all';
- $('#main').innerHTML=`<div class="page-heading"><div><h1>Thoughts</h1><p>Claims in your own words, each tied to the passages that support or challenge it.</p></div><div class="actions"><button data-trash="true">Trash</button><button id="add-claim" class="primary">＋ New thought</button></div></div><div class="discussion-filters claim-filters"><label>Search<input id="search-claims" placeholder="Words in a thought" value="${esc(claimQuery)}"></label><label>Status<select id="claim-status"><option>All</option>${claimStatuses.map(s=>`<option ${s===claimStatus?'selected':''}>${s}</option>`).join('')}</select></label><label>Keyword<select id="claim-keyword"><option value="all">All keywords</option>${data.keywords.map(k=>`<option value="${esc(k.id)}" ${claimKeyword===k.id?'selected':''}>${esc(k.title)}</option>`).join('')}</select></label><label>Show<select id="claim-gap">${['All','Needs work','No evidence','No counter-evidence','No keyword','From conversations','Not in outline'].map(x=>`<option ${x===claimGap?'selected':''}>${x}</option>`).join('')}</select></label></div><div class="archive-count" id="claim-count" role="status"></div><div id="claim-list" class="list"></div>`;
+ if(claimView==='blocks')return renderThoughtBlocks();
+ $('#main').innerHTML=`<div class="page-heading"><div><h1>Thoughts</h1><p>Claims in your own words, each tied to the passages that support or challenge it.</p></div><div class="actions">${viewToggle()}<button data-trash="true">Trash</button><button id="add-claim" class="primary">＋ New thought</button></div></div><div class="discussion-filters claim-filters"><label>Search<input id="search-claims" placeholder="Words in a thought" value="${esc(claimQuery)}"></label><label>Status<select id="claim-status"><option>All</option>${claimStatuses.map(s=>`<option ${s===claimStatus?'selected':''}>${s}</option>`).join('')}</select></label><label>Keyword<select id="claim-keyword"><option value="all">All keywords</option>${data.keywords.map(k=>`<option value="${esc(k.id)}" ${claimKeyword===k.id?'selected':''}>${esc(k.title)}</option>`).join('')}</select></label><label>Show<select id="claim-gap">${['All','Needs work','No evidence','No counter-evidence','No keyword','From conversations','Not in outline'].map(x=>`<option ${x===claimGap?'selected':''}>${x}</option>`).join('')}</select></label></div><div class="archive-count" id="claim-count" role="status"></div><div id="claim-list" class="list"></div>`;
  $('#add-claim').onclick=()=>editClaim();
  $('#search-claims').oninput=e=>{claimQuery=e.target.value;claimList();};
  $('#claim-status').onchange=e=>{claimStatus=e.target.value;claimList();};
@@ -91,10 +95,31 @@ function renderClaim(){
  $('#edit-claim').onclick=()=>editClaim(c.id);$('#delete-claim').onclick=()=>deleteClaim(c.id);$('#link-evidence').onclick=()=>linkEvidence(c);
  $('#claim-note').oninput=e=>{c.note=e.target.value;if(save())$('#claim-note-state').textContent='Saved on this browser';};
 }
+/* Blocks view: one colour block per thought (its first keyword's colour). Hovering pushes a block out
+   to the left, nudges its neighbours, and shows the thought beside it. Abandoned thoughts are left out. */
+function renderThoughtBlocks(){
+ const live=data.claims.filter(c=>c.status!=='Abandoned'),cs=live.filter(c=>claimKeyword==='all'||c.keywords.includes(claimKeyword)).sort((a,b)=>b.updated.localeCompare(a.updated));
+ const cats=data.keywords.filter(k=>live.some(c=>c.keywords.includes(k.id))),dayAgo=Date.now()-86400000;
+ const colour=c=>{const k=c.keywords.map(getKeyword).find(Boolean);return k?colors[k.color%colors.length]:'#dddcd6';};
+ $('#main').innerHTML=`<div class="page-heading"><div><h1>Thoughts</h1><p>Hover a block to read a thought. Click it to open.</p></div><div class="actions">${viewToggle()}<button id="add-claim" class="primary">＋ New thought</button></div></div><div class="thought-blocks"><nav class="tb-cats" aria-label="Filter by keyword"><button data-tb-keyword="all" aria-pressed="${claimKeyword==='all'}">All</button>${cats.map(k=>`<button data-tb-keyword="${esc(k.id)}" aria-pressed="${claimKeyword===k.id}">${esc(k.title)}</button>`).join('')}</nav><div class="tb-column">${cs.map(c=>`<button class="tb-block" data-tb="${esc(c.id)}" style="--block:${colour(c)}" aria-label="${esc(c.text)}">${Date.parse(c.created)>dayAgo?'<span class="tb-new">NEW</span>':''}</button>`).join('')}</div><div class="tb-side"><div class="tb-label" id="tb-label">${cs.length?'<span class="tb-hint">Hover a block</span>':`<span class="tb-hint">${live.length?'No thoughts with this keyword.':'No thoughts yet. Use “New thought”, or “→ Thought” on a comment or passage.'}</span>`}</div></div></div>`;
+ $('#add-claim').onclick=()=>editClaim(null,{stay:true});
+ const blocks=$$('.tb-block'),label=$('#tb-label');
+ const show=i=>{
+  blocks.forEach((b,j)=>{b.classList.toggle('is-out',j===i);b.classList.toggle('is-near',Math.abs(j-i)===1);});
+  const c=getClaim(blocks[i].dataset.tb),ks=c.keywords.map(getKeyword).filter(Boolean).map(k=>k.title),ev=liveEvidence(c);
+  label.innerHTML=`<span class="tb-meta">${esc([c.status,...ks].join(' · '))}</span><span class="tb-text">${esc(c.text)}</span>${ev.length||claimGaps(c).length?`<span class="tb-meta">${esc([ev.length?`${ev.length} passage${ev.length>1?'s':''}`:'',...claimGaps(c)].filter(Boolean).join(' · '))}</span>`:''}`;
+  label.style.top=blocks[i].offsetTop+'px';
+ };
+ blocks.forEach((b,i)=>{b.addEventListener('pointerenter',()=>show(i));b.addEventListener('focus',()=>show(i));});
+ $('.tb-column')?.addEventListener('pointerleave',()=>blocks.forEach(b=>b.classList.remove('is-out','is-near')));
+}
+
 /* Shown under each passage in the reader. */
 function passageClaimsHTML(h){const cs=claimsForPassage(h.id);return `<div class="passage-claims">${cs.map(c=>{const r=c.evidence.find(e=>e.passageId===h.id).relation;return `<button class="link" data-claim="${esc(c.id)}"><span class="relation-chip rel-${r}">${relations[r]}</span> ${esc(c.text.slice(0,120))}</button>`;}).join('')}<button data-claim-from-passage="${esc(h.id)}">→ Thought from passage</button></div>`;}
 
 document.addEventListener('click',e=>{
+ const v=e.target.closest('[data-claim-view],[data-tb-keyword],[data-tb]');
+ if(v){const d=v.dataset;if(d.tb)return openClaim(d.tb);if(d.tbKeyword){claimKeyword=d.tbKeyword;return renderThoughtBlocks();}claimView=d.claimView;try{localStorage.setItem('theesees-thought-view',claimView);}catch{}return renderThoughts();}
  const el=e.target.closest('[data-claim],[data-claim-from-passage],[data-unlink-evidence],[data-claim-keyword]');if(!el)return;const d=el.dataset;
  if(d.claim)return openClaim(d.claim);
  if(d.claimFromPassage){const h=data.passages.find(x=>x.id===d.claimFromPassage);return editClaim(null,{passageId:h.id,keywords:getPaper(h.paperId)?.keywords||[],stay:true});}
