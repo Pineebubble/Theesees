@@ -140,6 +140,11 @@ function batchReview(rows,themes){
  form.onsubmit=async e=>{
   e.preventDefault();btn.disabled=true;btn.textContent='Adding…';
   const fd=new FormData(form),added=[],failed=[];
+  // Open file storage first; if another (older) Theesees tab is blocking it, the button says why we are waiting.
+  if(fd.getAll('pick').some(i=>rows[Number(i)].file)){
+   const hint=setTimeout(()=>{btn.textContent='Waiting — close your other Theesees tabs…';},1500);
+   try{await pdfDB();}catch{/* PDFs will be reported as not stored below */}finally{clearTimeout(hint);btn.textContent='Adding…';}
+  }
   for(const i of fd.getAll('pick').map(Number)){
    const r=rows[i],title=fd.get('title-'+i).trim();if(!title)continue;
    const p={id:uid(),title,author:fd.get('author-'+i).trim(),year:fd.get('year-'+i).trim(),doi:normDOI(fd.get('doi-'+i))&&fd.get('doi-'+i).trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,''),journal:r.journal||'',status:'To read',relevance:'',keywords:[...themes],text:'',pdfName:''};
