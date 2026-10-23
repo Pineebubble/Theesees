@@ -43,6 +43,7 @@ This repository contains application code and design assets, not personal papers
 - Key-thought markers, editing, and Trash with 30-day recovery.
 - **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no theme, not in the outline).
 - **Outline**: arrange thoughts into numbered chapters and sections by drag-and-drop or menus, add a one-line argument per part, and export Markdown with evidence quotations, author–year–page citations, and a reference list. Citations are a simple author–year style, not a full citation style such as APA.
+- **Outline → Write**: a writing area for each chapter and section, beside the thoughts placed there. Bold/italic, autosave, word counts per section, chapter and in total; **Insert thought** adds a thought with its citation, **Cite** adds a passage citation (e.g. *(Hlavac et al., 2026, p. 1)*) and **Cite a paper** adds *(Author, Year)*; citation labels follow later corrections to a paper. Pasted text keeps paragraphs, bold and italic only. Markdown export includes the written text and lists every cited paper in the references; removing a part that has writing moves it to Trash.
 - Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
 - **Add several papers** at once from PDFs and/or pasted DOIs. Title, authors and DOI are read from each PDF (its own title/author fields, the largest text on page 1, DOIs in the first pages) and, optionally, completed online from **Crossref**, plus **OpenAlex** if you save a free OpenAlex API key (better for books and non-English work). Only DOIs, or titles with the first author's surname when a PDF has no DOI, are sent; PDFs stay in the browser. A title search fills details in only on a near-certain match; otherwise it offers up to three possible matches to pick from, and each row has **Find online** to search again after correcting the title or author. Everything is shown for review first, and papers already in the library are flagged.
 - Literature is grouped by each paper's first theme, in theme-map order.
@@ -65,6 +66,7 @@ node outline-check.cjs
 node pdf-check.cjs
 node scripts-check.cjs
 node lit-check.cjs
+node draft-check.cjs
 ```
 
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.

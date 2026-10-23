@@ -4,8 +4,9 @@ vm.runInContext(`let saved=true,formHandler,page='',lastModal='';let data={keywo
 const uid=(()=>{let n=0;return()=>'x'+(++n);})();const esc=s=>String(s??'').replace(/</g,'&lt;');const colors=['#fff'];
 const getPaper=id=>data.papers.find(p=>p.id===id),getKeyword=id=>data.keywords.find(k=>k.id===id);
 const save=()=>saved;const modal=(a,b,c)=>{lastModal=b;formHandler=c;};const closeModal=()=>{};const actions=()=>'';const empty=t=>t;const toast=()=>{};const keywordChecks=()=>'';
-const render=()=>{};const navigate=v=>{page=v;};const $=()=>({});const $$=()=>[];const threadPapers=()=>[],threadPassages=()=>[];`,c);
+const plural=(n,w)=>n+' '+w+(n===1?'':'s');const render=()=>{};const navigate=v=>{page=v;};const $=()=>({});const $$=()=>[];const threadPapers=()=>[],threadPassages=()=>[];`,c);
 vm.runInContext(fs.readFileSync(__dirname+'/dist/claims.js','utf8'),c);
+vm.runInContext(fs.readFileSync(__dirname+'/dist/draft.js','utf8'),c);
 vm.runInContext(fs.readFileSync(__dirname+'/dist/outline.js','utf8'),c);
 const run=s=>vm.runInContext(s,c);
 run(`renderOutline=()=>{};renderClaim=()=>{};
@@ -63,4 +64,13 @@ assert.equal(titles(),'Chapter two');assert.equal(run('placementOf(a)'),undefine
 // Failed save rolls back.
 run(`saved=false;placeClaim(b,null);saved=true;`);assert.equal(run('placementOf(b).id'),run('ch2'));
 assert.equal(run('JSON.parse(JSON.stringify(data.outline)).parts[0].claimIds.length'),1);
-console.log('PASS: chapters/sections, numbering, placement and order, chapter/section moves, Markdown headings, citations, references, export options, trashed thoughts, removal unplaces, save rollback.');
+// Written text: exported under its heading, with its citations added to the references; optional on export.
+run(`data.outline.parts=[{id:'w1',level:1,title:'Written chapter',note:'',claimIds:[],draft:'<p>Fluency is <strong>not</strong> neutral <span class="cite" contenteditable="false" data-paper="u">(Nobody, 1999)</span>.</p>'}];`);
+let wmd=run('outlineMarkdown()');
+assert.match(wmd,/## 1 Written chapter\n\nFluency is \*\*not\*\* neutral \(Nobody, 1999\)\./);
+assert.match(wmd,/## References[\s\S]*Uncited/); // the paper cited in the text is now listed
+assert.doesNotMatch(run('outlineMarkdown({drafts:false})'),/Fluency/);
+// Removing a part that has writing sends it to Trash, where it can be restored.
+run(`data.trash=[];deletePart('w1');formHandler();`);
+assert.equal(run('data.outline.parts.length'),0);assert.equal(run('data.trash[0].type'),'outline');assert.equal(run('data.trash[0].parts[0].draft.includes("Fluency")'),true);
+console.log('PASS: chapters/sections, numbering, placement and order, chapter/section moves, Markdown headings, citations, references, export options, trashed thoughts, removal unplaces, save rollback, written text in export and references, parts with writing go to Trash.');

@@ -3,6 +3,9 @@
    Parts are one flat ordered list; a section belongs to the nearest chapter above it. Each thought sits in at most one part. */
 data.outline ||= {parts:[]};
 const outlineParts=()=>data.outline.parts;
+// Arrange (place thoughts) or Write (draft each part); remembered per browser.
+let outlineMode=(()=>{try{return localStorage.getItem('theesees-outline-mode')==='write'?'write':'arrange';}catch{return 'arrange';}})();
+const outlineModeToggle=()=>`<div class="view-toggle" role="group" aria-label="Outline view">${[['arrange','Arrange'],['write','Write']].map(([v,l])=>`<button data-outline-mode="${v}" aria-pressed="${outlineMode===v}">${l}</button>`).join('')}</div>`;
 const getPart=id=>outlineParts().find(s=>s.id===id);
 const placementOf=claimId=>outlineParts().find(s=>s.claimIds.includes(claimId));
 function chapterOf(part){const parts=outlineParts();for(let i=parts.indexOf(part);i>=0;i--)if(parts[i].level===1)return parts[i];return null;}
@@ -25,8 +28,12 @@ function editPart(id=null,{level=1,chapterId=null}={}){
  });
 }
 function deletePart(id){
- const s=getPart(id);if(!s)return;const parts=outlineParts(),i=parts.indexOf(s),[start,end]=s.level===1?chapterBlock(i):[i,i+1],removed=parts.slice(start,end),n=removed.reduce((a,p)=>a+p.claimIds.length,0);
- modal(`Remove ${s.level===1?'chapter':'section'}?`,`<p>Remove “${esc(s.title)}”${s.level===1&&removed.length>1?` and its ${removed.length-1} section${removed.length>2?'s':''}`:''} from the outline? ${n?`Its ${n} thought${n>1?'s':''} will return to “Not yet placed”. `:''}Thoughts themselves are never deleted here.</p><form>${actions('Remove from outline')}</form>`,()=>{if(commitOutline(()=>parts.splice(start,end-start))){closeModal();renderOutline();}});
+ const s=getPart(id);if(!s)return;const parts=outlineParts(),i=parts.indexOf(s),[start,end]=s.level===1?chapterBlock(i):[i,i+1],removed=parts.slice(start,end),n=removed.reduce((a,p)=>a+p.claimIds.length,0),words=typeof wordCount==='function'?removed.reduce((a,p)=>a+wordCount(draftPlain(p.draft||'')),0):0;
+ modal(`Remove ${s.level===1?'chapter':'section'}?`,`<p>Remove “${esc(s.title)}”${s.level===1&&removed.length>1?` and its ${removed.length-1} section${removed.length>2?'s':''}`:''} from the outline? ${n?`Its ${n} thought${n>1?'s':''} will return to “Not yet placed”. `:''}Thoughts themselves are never deleted here.${words?` Its ${plural(words,'written word')} go${words===1?'es':''} to Trash for 30 days.`:''}</p><form>${actions('Remove from outline')}</form>`,()=>{
+  const before=structuredClone(data);parts.splice(start,end-start);
+  if(words)data.trash.push({id:uid(),type:'outline',item:{title:s.title},parts:structuredClone(removed),at:new Date().toISOString()});
+  if(!save()){data=before;return;}closeModal();renderOutline();if(words)toast('Moved to Trash with its writing. Restore it there.');
+ });
 }
 function movePart(id,dir){
  const parts=outlineParts(),s=getPart(id),i=parts.indexOf(s);if(!s)return false;
@@ -53,12 +60,13 @@ function citation(h){const p=getPaper(h.paperId);return `(${citeName(p)}, ${p.ye
 function reference(p){if(p.apa)return p.apa;return `${p.author||'Unknown author'} (${p.year||'n.d.'}). *${p.title}*.${p.doi?` https://doi.org/${p.doi}`:''}`;}
 // plural() comes from workspace.js.
 const oneLine=s=>String(s).replace(/\s+/g,' ').trim();
-function outlineMarkdown({quotes=true,reasoning=true,status=false}={}){
+function outlineMarkdown({quotes=true,reasoning=true,status=false,drafts=true,thoughts=true}={}){
  const nums=partNumbers(),cited=new Set(),out=['# Thesis outline','',`_Draft exported from Theesees on ${new Date().toLocaleDateString()}. Claims are in your own words; evidence links are your judgements._`,''];
  for(const s of outlineParts()){
   out.push(`${s.level===1?'#':'##'}# ${nums[s.id]} ${s.title}`,'');
   if(s.note)out.push(`_${oneLine(s.note)}_`,'');
-  const cs=s.claimIds.map(getClaim).filter(c=>c&&c.status!=='Abandoned');
+  if(drafts&&s.draft&&typeof draftToMarkdown==='function'){const md=draftToMarkdown(s.draft);if(md)out.push(md,'');citesIn(s.draft).forEach(c=>cited.add(c.paper));}
+  const cs=thoughts?s.claimIds.map(getClaim).filter(c=>c&&c.status!=='Abandoned'):[];
   for(const c of cs){
    const ev=liveEvidence(c);ev.forEach(e=>cited.add(e.passage.paperId));
    out.push(`- **${oneLine(c.text)}**${!quotes&&ev.length?' '+[...new Set(ev.filter(e=>e.relation!=='challenges').map(e=>citation(e.passage)))].join(' '):''}${status?` _[${c.status}]_`:''}`);
@@ -72,9 +80,9 @@ function outlineMarkdown({quotes=true,reasoning=true,status=false}={}){
  return out.join('\n').replace(/\n{3,}/g,'\n\n');
 }
 function exportOutline(){
- modal('Export outline as Markdown',`<p>Paste into your thesis document or any Markdown editor. Abandoned thoughts are left out. References list only papers cited by placed thoughts.</p><div class="outline-export-options"><label><input type="checkbox" id="md-quotes" checked> Include evidence quotations</label><label><input type="checkbox" id="md-reasoning" checked> Include reasoning</label><label><input type="checkbox" id="md-status"> Mark status</label></div><textarea id="outline-md" readonly rows="16" aria-label="Markdown outline"></textarea><div class="actions outline-export-actions"><button id="copy-md">Copy</button><button id="download-md" class="primary">Download .md</button></div>`);
- const update=()=>{$('#outline-md').value=outlineMarkdown({quotes:$('#md-quotes').checked,reasoning:$('#md-reasoning').checked,status:$('#md-status').checked});};
- ['#md-quotes','#md-reasoning','#md-status'].forEach(s=>$(s).onchange=update);update();
+ modal('Export outline as Markdown',`<p>Paste into your thesis document or any Markdown editor. Abandoned thoughts are left out. References list the papers cited in your text and by included thoughts.</p><div class="outline-export-options"><label><input type="checkbox" id="md-drafts" checked> Include written text</label><label><input type="checkbox" id="md-thoughts" checked> Include thoughts</label><label><input type="checkbox" id="md-quotes" checked> Include evidence quotations</label><label><input type="checkbox" id="md-reasoning" checked> Include reasoning</label><label><input type="checkbox" id="md-status"> Mark status</label></div><textarea id="outline-md" readonly rows="16" aria-label="Markdown outline"></textarea><div class="actions outline-export-actions"><button id="copy-md">Copy</button><button id="download-md" class="primary">Download .md</button></div>`);
+ const update=()=>{$('#outline-md').value=outlineMarkdown({drafts:$('#md-drafts').checked,thoughts:$('#md-thoughts').checked,quotes:$('#md-quotes').checked,reasoning:$('#md-reasoning').checked,status:$('#md-status').checked});};
+ ['#md-drafts','#md-thoughts','#md-quotes','#md-reasoning','#md-status'].forEach(s=>$(s).onchange=update);update();
  $('#copy-md').onclick=async()=>{try{await navigator.clipboard.writeText($('#outline-md').value);toast('Markdown copied.');}catch{$('#outline-md').select();toast('Select-all done — press Ctrl/Cmd+C to copy.');}};
  $('#download-md').onclick=()=>{const url=URL.createObjectURL(new Blob([$('#outline-md').value],{type:'text/markdown'}));const a=document.createElement('a');a.href=url;a.download='theesees-outline.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 }
@@ -85,8 +93,9 @@ function outlineCard(c,placed){
  return `<article class="outline-claim status-${esc(c.status.toLowerCase())}" draggable="true" data-outline-claim="${esc(c.id)}"><span class="drag-handle" aria-hidden="true">⋮⋮</span><div class="outline-claim-body"><button class="link outline-claim-text" data-claim="${esc(c.id)}">${esc(c.text)}</button><div class="outline-claim-meta"><span class="badge claim-status">${esc(c.status)}</span>${evidenceSummary(c)}${gaps.map(g=>`<span class="badge unlinked">${esc(g)}</span>`).join('')}${ev.length?`<small>${[...new Set(ev.map(e=>citeName(getPaper(e.passage.paperId))))].map(esc).join(' · ')}</small>`:''}</div></div><div class="outline-claim-actions">${placed?`<button data-claim-move="-1" data-id="${esc(c.id)}" aria-label="Move up">↑</button><button data-claim-move="1" data-id="${esc(c.id)}" aria-label="Move down">↓</button>`:''}<select data-place-claim="${esc(c.id)}" aria-label="Move thought to">${placeOptions(placed)}</select></div></article>`;
 }
 function renderOutline(){
+ if(outlineMode==='write'&&typeof renderOutlineWrite==='function')return renderOutlineWrite();
  const parts=outlineParts(),nums=partNumbers(),live=data.claims.filter(c=>c.status!=='Abandoned'),unplaced=live.filter(c=>!placementOf(c.id)),placed=live.length-unplaced.length,needs=live.filter(c=>placementOf(c.id)&&claimGaps(c).length).length;
- $('#main').innerHTML=`<div class="page-heading"><div><h1>Outline</h1><p>Arrange your thoughts into the argument of your thesis. Drag them into place, or use the “Place in…” menus.</p></div><div class="actions"><button id="add-chapter">＋ Chapter</button><button id="export-outline" class="primary" ${parts.length?'':'disabled'}>Export Markdown ↗</button></div></div><div class="archive-count" role="status">${plural(parts.filter(s=>s.level===1).length,'chapter')} · ${plural(placed,'thought')} placed · ${needs} placed need${needs===1?'s':''} work · ${unplaced.length} not yet placed</div><div class="outline-layout"><section class="outline-tree">${parts.map(s=>{const cs=s.claimIds.map(getClaim).filter(Boolean),i=parts.indexOf(s);return `<section class="outline-part level-${s.level}"><div class="outline-part-head"><div><small class="outline-number">${s.level===1?'Chapter ':'Section '}${nums[s.id]}</small><h2>${esc(s.title)}</h2>${s.note?`<p class="outline-note">${esc(s.note)}</p>`:''}</div><div class="actions"><button data-part-move="-1" data-id="${esc(s.id)}" aria-label="Move ${esc(s.title)} up" ${i===0||(s.level===2&&i===1&&parts[0].level===1)?'disabled':''}>↑</button><button data-part-move="1" data-id="${esc(s.id)}" aria-label="Move ${esc(s.title)} down">↓</button>${s.level===1?`<button data-add-section="${esc(s.id)}">＋ Section</button>`:''}${moreMenu(`<button data-edit-part="${esc(s.id)}">Edit ${s.level===1?'chapter':'section'}</button><button class="danger" data-delete-part="${esc(s.id)}">Remove from outline</button>`)}</div></div><div class="outline-drop" data-drop-part="${esc(s.id)}">${cs.map(c=>outlineCard(c,s.id)).join('')||'<p class="outline-empty">Drop thoughts here.</p>'}</div></section>`;}).join('')||empty('No chapters yet','Add a chapter, then drag thoughts into it. You can reorder everything later.')}</section><aside class="outline-pool"><div class="section-top"><h2>Not yet placed <small>${unplaced.length}</small></h2><button data-new-thought="true">＋ Thought</button></div><div class="outline-drop" data-drop-part="">${unplaced.map(c=>outlineCard(c,null)).join('')||`<p class="outline-empty">${live.length?'Every thought is placed.':'No thoughts yet. Create them in the Thoughts tab or with “→ Thought” on a comment or passage.'}</p>`}</div></aside></div>`;
+ $('#main').innerHTML=`<div class="page-heading"><div><h1>Outline</h1><p>Arrange your thoughts into the argument of your thesis. Drag them into place, or use the “Place in…” menus.</p></div><div class="actions">${outlineModeToggle()}<button id="add-chapter">＋ Chapter</button><button id="export-outline" class="primary" ${parts.length?'':'disabled'}>Export Markdown ↗</button></div></div><div class="archive-count" role="status">${plural(parts.filter(s=>s.level===1).length,'chapter')} · ${plural(placed,'thought')} placed · ${needs} placed need${needs===1?'s':''} work · ${unplaced.length} not yet placed</div><div class="outline-layout"><section class="outline-tree">${parts.map(s=>{const cs=s.claimIds.map(getClaim).filter(Boolean),i=parts.indexOf(s);return `<section class="outline-part level-${s.level}"><div class="outline-part-head"><div><small class="outline-number">${s.level===1?'Chapter ':'Section '}${nums[s.id]}</small><h2>${esc(s.title)}</h2>${s.note?`<p class="outline-note">${esc(s.note)}</p>`:''}</div><div class="actions"><button data-part-move="-1" data-id="${esc(s.id)}" aria-label="Move ${esc(s.title)} up" ${i===0||(s.level===2&&i===1&&parts[0].level===1)?'disabled':''}>↑</button><button data-part-move="1" data-id="${esc(s.id)}" aria-label="Move ${esc(s.title)} down">↓</button>${s.level===1?`<button data-add-section="${esc(s.id)}">＋ Section</button>`:''}${moreMenu(`<button data-edit-part="${esc(s.id)}">Edit ${s.level===1?'chapter':'section'}</button><button class="danger" data-delete-part="${esc(s.id)}">Remove from outline</button>`)}</div></div><div class="outline-drop" data-drop-part="${esc(s.id)}">${cs.map(c=>outlineCard(c,s.id)).join('')||'<p class="outline-empty">Drop thoughts here.</p>'}</div></section>`;}).join('')||empty('No chapters yet','Add a chapter, then drag thoughts into it. You can reorder everything later.')}</section><aside class="outline-pool"><div class="section-top"><h2>Not yet placed <small>${unplaced.length}</small></h2><button data-new-thought="true">＋ Thought</button></div><div class="outline-drop" data-drop-part="">${unplaced.map(c=>outlineCard(c,null)).join('')||`<p class="outline-empty">${live.length?'Every thought is placed.':'No thoughts yet. Create them in the Thoughts tab or with “→ Thought” on a comment or passage.'}</p>`}</div></aside></div>`;
  $('#add-chapter').onclick=()=>editPart();$('#export-outline').onclick=exportOutline;
  setupOutlineDrag();
 }
@@ -113,6 +122,7 @@ function setupOutlineDrag(){
 function outlinePlacementHTML(c){const s=placementOf(c.id);return `<label class="outline-placement">Outline<select data-place-claim="${esc(c.id)}" data-from-claim-page="true">${placeOptions(s?.id)}</select></label>`;}
 
 document.addEventListener('click',e=>{
+ const m=e.target.closest('[data-outline-mode]');if(m){if(typeof flushDraft==='function')flushDraft();outlineMode=m.dataset.outlineMode;try{localStorage.setItem('theesees-outline-mode',outlineMode);}catch{}return renderOutline();}
  const el=e.target.closest('[data-part-move],[data-add-section],[data-edit-part],[data-delete-part],[data-claim-move],[data-new-thought]');if(!el)return;const d=el.dataset;
  if(d.newThought)return editClaim(null,{stay:true});
  if(d.addSection)return editPart(null,{level:2,chapterId:d.addSection});
