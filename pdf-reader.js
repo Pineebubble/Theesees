@@ -31,7 +31,7 @@ async function mountPDFReader(file,p,url){
    st.indexReady=pdfBuildIndex(st);
   }
   if(pdfState.paperId!==p.id||currentPaper!==p.id||!$('#pdf-pages'))return;
-  pdfLayout();pdfBindPages();
+  pdfLayout();pdfBindPages();pdfFitPassages();
   pdfState.indexReady.then(()=>{if(activePassage&&pdfState?.paperId===p.id&&currentPaper===p.id)pdfLocate(activePassage,{quiet:true});});
  }catch(err){box.querySelector('#pdf-pages').innerHTML=`<p class="help pdf-error">Could not open this PDF (${esc(err.message||'unknown error')}). <a href="${url}" target="_blank" rel="noopener">Open it in a new tab</a>.</p>`;}
 }
@@ -44,6 +44,7 @@ async function pdfBuildIndex(st){
 }
 /* Re-match passages that are new or whose quote changed; persist page and match quality on the passage. */
 function pdfSyncMatches(force=false){
+ pdfFitPassages();
  const st=pdfState;if(!st?.index)return;
  const p=getPaper(st.paperId);if(!p)return;let changed=false;
  const hs=pdfPassages(st.paperId),ids=new Set(hs.map(h=>h.id));
@@ -136,6 +137,7 @@ function pdfPageInfo(){const el=$('#pdf-pageinfo'),st=pdfState;if(!el||!st?.doc)
 function pdfBindPages(){
  const box=$('#pdf-pages'),btn=$('#pdf-save-selection');let pending=null,resizeTimer,lastW=box.clientWidth;
  box.addEventListener('scroll',()=>{pdfPageInfo();btn.hidden=true;},{passive:true});
+ new ResizeObserver(()=>pdfFitPassages()).observe(box.closest('.source-pane')||box);
  new ResizeObserver(()=>{if(!pdfState?.fit||Math.abs(box.clientWidth-lastW)<30)return;lastW=box.clientWidth;clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>pdfLayout(),150);}).observe(box);
  box.addEventListener('mouseup',()=>setTimeout(()=>{
   const sel=getSelection(),text=sel&&!sel.isCollapsed?sel.toString():'';
@@ -161,6 +163,23 @@ function pdfSavePassage({quote,page:n}){
   activePassage=h.id;getSelection().removeAllRanges();closeModal();renderPassages();
   toast('Passage saved and highlighted.');
  });
+}
+/* Keep the passages column level with the PDF viewer. Compact mode switches on when the passages run more than
+   50% past the viewer and off only when they fit in 60% of it, so it does not flicker between the two. */
+let pdfFitTimer;
+function pdfFitPassages(){
+ const rp=$('#record-pane'),src=$('#pdf-preview')?.closest('.source-pane');if(!rp||!src)return;
+ if(!$('#pdf-pages .pdf-page'))return; // the viewer has no real height until its pages are laid out
+ rp.classList.add('beside-pdf');
+ // Compare against what the column can actually show: the viewer's height, but never more than the window.
+ const h=Math.round(Math.min(src.getBoundingClientRect().height,innerHeight-24));if(h<200)return;
+ rp.style.setProperty('--viewer-h',h+'px');
+ clearTimeout(pdfFitTimer);
+ pdfFitTimer=setTimeout(()=>{
+  const compact=rp.classList.contains('compact'),content=rp.scrollHeight;
+  if(!compact&&content>h*1.5){rp.classList.add('compact');if(typeof recollapse==='function')recollapse(rp);}
+  else if(compact&&content<h*0.6){rp.classList.remove('compact');if(typeof recollapse==='function')recollapse(rp);}
+ },120);
 }
 /* Shown on passage cards when the paper is read as a PDF. */
 function pdfPassageLabel(h){
