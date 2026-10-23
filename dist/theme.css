@@ -475,3 +475,23 @@ dialog{border-radius:10px;box-shadow:0 24px 64px #1b1b1933;padding:26px 28px}
 /* Literature grouped by theme: one tab per group, a little air between groups. */
 .drawer-file+.drawer-file.group-start{margin-top:-4px}
 .spine-tab small{margin-left:8px;opacity:.6;font-size:11px}
+
+/* ---------- Add several papers ---------- */
+dialog.wide{width:min(980px,96vw)}
+.batch-check{display:flex;gap:10px;align-items:baseline;margin-top:14px}
+.batch-check input{width:auto;margin:0;flex:none}
+.batch-check small{display:block;color:var(--muted);margin-top:3px}
+.batch-progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin:14px 0 8px}
+.batch-progress div{height:100%;background:var(--ink);transition:width .2s}
+.batch-current{font-size:12px;color:var(--muted)}
+.batch-table{max-height:58vh;overflow:auto;margin:6px -6px 0;padding:0 6px}
+.batch-row{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}
+.batch-row.is-dup{opacity:.6}
+.batch-pick{margin:0;padding-top:9px}
+.batch-pick input{width:16px;height:16px;margin:0}
+.batch-fields>input{font-weight:600}
+.batch-fields input{margin:0;padding:7px 9px}
+.batch-sub{display:grid;grid-template-columns:minmax(0,2fr) 80px minmax(0,1.3fr);gap:6px;margin-top:6px}
+.batch-fields small{display:block;margin-top:6px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.batch-fields small b{font-weight:500;color:var(--danger)}
+@media(max-width:650px){.batch-sub{grid-template-columns:1fr}}

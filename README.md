@@ -43,10 +43,11 @@ This repository contains application code and design assets, not personal papers
 - **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no theme, not in the outline).
 - **Outline**: arrange thoughts into numbered chapters and sections by drag-and-drop or menus, add a one-line argument per part, and export Markdown with evidence quotations, author–year–page citations, and a reference list. Citations are a simple author–year style, not a full citation style such as APA.
 - Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
+- **Add several papers** at once from PDFs and/or pasted DOIs. Title, authors and DOI are read from each PDF (its own title/author fields, the largest text on page 1, DOIs in the first pages) and, optionally, completed from **Crossref**. Only DOIs, or titles when a PDF has no DOI, are sent to Crossref; PDFs stay in the browser. Everything is shown for review first, and papers already in the library are flagged.
 - Literature is grouped by each paper's first theme, in theme-map order.
 - Zotero CSL-JSON bibliography import, not live Zotero synchronization.
 
-No live AI calls, automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
+No live AI calls (the optional Crossref lookup is the only network request), automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
 
 ## Developer checks
 
@@ -61,6 +62,7 @@ node claims-check.cjs
 node outline-check.cjs
 node pdf-check.cjs
 node scripts-check.cjs
+node lit-check.cjs
 ```
 
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
