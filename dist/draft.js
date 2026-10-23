@@ -46,4 +46,26 @@ function draftPlain(html){return decodeEntities(sanitizeDraft(html).replace(/<\/
 // Words; each Chinese/Japanese/Korean character counts as one, as word processors do.
 function wordCount(text){const s=String(text||'');const cjkChars=(s.match(/[぀-ヿ㐀-鿿가-힯]/g)||[]).length;return cjkChars+(s.replace(/[぀-ヿ㐀-鿿가-힯]/g,' ').match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu)||[]).length;}
 function citesIn(html){return [...sanitizeDraft(html).matchAll(/data-paper="([\w-]+)"(?: data-passage="([\w-]+)")?/g)].map(m=>({paper:m[1],passage:m[2]||null}));}
-if(typeof module!=='undefined')module.exports={sanitizeDraft,draftToMarkdown,draftPlain,wordCount,citesIn};
+/* Aa button: each click moves the text one step through Sentence case → Title Case → UPPERCASE → lowercase.
+   Words already written in capitals (AI, IC, UNESCO) stay so in sentence and title case, unless everything is upper. */
+const MINOR=new Set('a an the and but or nor for so yet as at by in of off on per to up via vs from into onto with over upon'.split(' '));
+function caseOf(t){const letters=t.replace(/[^\p{L}]/gu,'');if(!letters)return 'none';if(letters===letters.toUpperCase())return 'upper';if(letters===letters.toLowerCase())return 'lower';if(t===toTitleCase(t))return 'title';if(t===toSentenceCase(t))return 'sentence';return 'mixed';}
+function keepCaps(word,allUpper){return !allUpper&&/^\p{Lu}{2,}s?$/u.test(word.replace(/[^\p{L}]/gu,''));}
+function toSentenceCase(t){
+ const allUpper=/^[^\p{Ll}]*$/u.test(t);let start=true;
+ return t.replace(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu,w=>{const out=keepCaps(w,allUpper)?w:start?w[0].toUpperCase()+w.slice(1).toLowerCase():(w==='i'||w==='I'?'I':w.toLowerCase());start=false;return out;})
+  .replace(/([.!?:]\s+)(\p{Ll})/gu,(m,p,c)=>p+c.toUpperCase());
+}
+function toTitleCase(t){
+ const allUpper=/^[^\p{Ll}]*$/u.test(t);const words=[...t.matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu)];
+ return t.replace(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu,(w,off)=>{
+  if(keepCaps(w,allUpper))return w;
+  const i=words.findIndex(m=>m.index===off),first=i===0,last=i===words.length-1,afterColon=/[:—–]\s*$/.test(t.slice(0,off));
+  const lw=w.toLowerCase();
+  if(!first&&!last&&!afterColon&&MINOR.has(lw))return lw;
+  return lw.split('-').map(p=>p?p[0].toUpperCase()+p.slice(1):p).join('-');
+ });
+}
+function cycleCase(t){const c=caseOf(t);return c==='sentence'?toTitleCase(t):c==='title'?t.toUpperCase():c==='upper'?t.toLowerCase():toSentenceCase(t);}
+
+if(typeof module!=='undefined')module.exports={sanitizeDraft,draftToMarkdown,draftPlain,wordCount,citesIn,cycleCase,toSentenceCase,toTitleCase};
