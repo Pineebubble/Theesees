@@ -1,7 +1,7 @@
 'use strict';
 /* Pictures in discussion comments. They live in the browser's file storage (IndexedDB, next to PDFs), never in
    localStorage, and are not part of "Export records". Large pictures are scaled down before storing. */
-async function putImage(id,blob){const db=await pdfDB();await new Promise((res,rej)=>{const tx=db.transaction('images','readwrite');tx.objectStore('images').put(blob,id);tx.oncomplete=res;tx.onerror=()=>rej(Error('Could not store the picture. Browser storage may be full.'));});}
+async function putImage(id,blob){const db=await pdfDB();await new Promise((res,rej)=>{const tx=db.transaction('images','readwrite');tx.objectStore('images').put(blob,id);tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(Error('Could not store the picture. Browser storage may be full.'));});}
 async function getImage(id){const db=await pdfDB();return new Promise(res=>{const r=db.transaction('images').objectStore('images').get(id);r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);});}
 async function deleteImages(ids){if(!ids?.length)return;try{const db=await pdfDB();await new Promise(res=>{const tx=db.transaction('images','readwrite');for(const id of ids)tx.objectStore('images').delete(id);tx.oncomplete=tx.onerror=res;});}catch{/* removed on a later cleanup */}}
 // Longest side at most 2000px; screenshots stay sharp as WebP. GIFs (animation) and SVGs are kept as they are.
