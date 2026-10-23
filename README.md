@@ -31,7 +31,7 @@ This repository contains application code and design assets, not personal papers
 
 ## Features
 
-- Editable colored theme folders and connections; links to literature.
+- Editable colored theme folders and connections, shown in a collapsible **Themes** map at the top of the Literature page. Click a theme to list only its papers; click empty space to show them all.
 - Pull-out literature drawer; editable title, authors, and year.
 - PDF reading with PDF.js: select text in a PDF to save it as a passage (page filled in automatically); saved passages are found and highlighted in the PDF, and “Show source” jumps to them. Matching ignores line breaks, hyphenation, ligatures and punctuation, and falls back to an approximate match for lightly edited quotes. Scanned PDFs without a text layer cannot be searched (no OCR).
 - Pasted-text reading and editable source passages. Long passages collapse to a few lines with “Show full passage”.
