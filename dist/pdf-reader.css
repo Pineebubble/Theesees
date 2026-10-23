@@ -6,7 +6,7 @@
 .pdf-toolbar .actions{gap:4px}
 .pdf-toolbar button{font-size:12px;padding:6px 10px;min-width:32px}
 .pdf-toolbar a{font-size:12px;color:inherit;margin-left:6px}
-.pdf-pages{height:78vh;min-height:420px;overflow:auto;background:#ecebe7;padding:14px 14px 28px;display:flex;flex-direction:column;align-items:center;gap:22px;outline:0}
+.pdf-pages{height:calc(100vh - 70px);min-height:520px;overflow:auto;background:#ecebe7;padding:14px 14px 28px;display:flex;flex-direction:column;align-items:center;gap:22px;outline:0}
 .pdf-page{position:relative;flex:none;background:#fff;box-shadow:0 1px 3px #1b1b1922;isolation:isolate}
 .pdf-page canvas{position:absolute;inset:0;display:block}
 .pdf-hl{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply}
@@ -30,5 +30,24 @@
 .textLayer br::selection{background:transparent}
 .textLayer .endOfContent{display:block;position:absolute;inset:100% 0 0;z-index:-1;cursor:default;user-select:none}
 .textLayer .endOfContent.active{top:0}
-@media(max-width:650px){.pdf-pages{height:70vh;padding:8px 8px 24px}.pdf-toolbar a{margin-left:0}}
+/* Beside a PDF, the passages column is no taller than the viewer and scrolls on its own; when its content runs
+   well past the viewer it switches to a compact layout (set by pdfFitPassages). */
+.record-pane.beside-pdf{position:sticky;top:12px;align-self:start;max-height:min(var(--viewer-h,100vh),calc(100vh - 24px));overflow:auto;overscroll-behavior:contain}
+.record-pane.compact .passage-composer{padding:10px;margin-bottom:12px}
+.record-pane.compact .passage-composer textarea{min-height:56px}
+.record-pane.compact .passage{padding:10px 12px;margin:8px 0}
+.record-pane.compact .passage blockquote{font-size:13px;line-height:1.55;margin:6px 0}
+.record-pane.compact .passage .actions{margin-top:8px;gap:4px}
+.record-pane.compact .passage .actions button{font-size:10px;padding:4px 7px}
+.record-pane.compact .discussion-card{padding:10px;margin-top:8px}
+.record-pane.compact .passage-claims{margin-top:8px;padding-top:8px;gap:5px}
+/* In compact mode, a card's buttons appear when you point at it, select it or tab into it (mouse devices only). */
+@media(hover:hover){
+ .record-pane.compact .passage:not(:hover):not(:focus-within):not(.active)>.actions,
+ .record-pane.compact .passage:not(:hover):not(:focus-within):not(.active) [data-claim-from-passage],
+ .record-pane.compact .passage>p.help{display:none}
+ .record-pane.compact .passage:not(:hover):not(:focus-within):not(.active) .passage-claims:not(:has(.link)){display:none}
+}
+@media(max-width:950px){.record-pane.beside-pdf{position:static;max-height:none;overflow:visible}}
+@media(max-width:650px){.pdf-pages{height:75vh;padding:8px 8px 24px}.pdf-toolbar a{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.pdf-mark.flash{animation:none;background:var(--c-coral,#ff6a4a)}}
