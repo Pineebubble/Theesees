@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const {findDOIs,normDOI,usableTitle,usableAuthor,titleFromItems,crossrefToPaper,titleSimilarity,findDuplicate}=require('./dist/lit-meta.js');
+const {findDOIs,normDOI,usableTitle,usableAuthor,titleFromItems,crossrefToPaper,openalexToPaper,titleSimilarity,matchScore,candidateScore,findDuplicate}=require('./dist/lit-meta.js');
 
 // DOIs inside running text and reference lists; trailing punctuation dropped, balanced brackets kept, duplicates once.
 assert.deepEqual(findDOIs('See https://doi.org/10.1215/01642472-18-2_63-33. Also (doi:10.1177/1367549407088333), and 10.1016/S0140-6736(20)30183-5; again 10.1215/01642472-18-2_63-33'),
@@ -28,9 +28,20 @@ assert.equal(crossrefToPaper({title:['Free Labor'],subtitle:['Producing Culture 
 assert(titleSimilarity('Free Labor: Producing Culture for the Digital Economy','Free labor. Producing culture for the digital economy')>0.9);
 assert(titleSimilarity('Free Labor: Producing Culture for the Digital Economy','The Digital Economy and Its Discontents')<0.75);
 
+// Matching found titles: a record stored without its subtitle matches; similar-but-different works do not;
+// Chinese titles compare by characters; agreeing authors raise the score, disagreeing ones lower it.
+assert(matchScore('Free Labor: Producing Culture for the Digital Economy','Free Labor')>=0.9);
+assert(matchScore('Bourdieu and the sociology of translation: the case of Italian translations of Joyce','Bourdieu and the Sociology of Translation and Interpreting')<0.8);
+assert(matchScore('翻译社会学的理论视角','翻译社会学的理论视角研究')>0.85);
+assert(matchScore('翻译社会学的理论视角','从目的翻译理论视角看庄子')<0.5);
+assert(candidateScore({title:'Translation and Globalization',author:'Michael Cronin'},{title:'Translation and Globalization',author:'Michael Cronin'})===1);
+assert(candidateScore({title:'Translation and Globalization',author:'Michael Cronin'},{title:'Translation and Globalization',author:'Someone Else'})<0.95);
+assert.deepEqual(openalexToPaper({display_name:'Constructing a Sociology of Translation',authorships:[{author:{display_name:'Michaela Wolf'}},{author:{display_name:'Alexandra Fukari'}}],publication_year:2007,doi:'https://doi.org/10.1075/btl.74',primary_location:{source:{display_name:'Benjamins Translation Library'}}}),
+ {title:'Constructing a Sociology of Translation',author:'Michaela Wolf, Alexandra Fukari',year:'2007',doi:'10.1075/btl.74',journal:'Benjamins Translation Library'});
+
 // Duplicates by DOI (any form) or by title ignoring case and punctuation.
 const lib=[{title:'Free Labor: Producing Culture',doi:'10.1215/01642472-18-2_63-33'},{title:'Platform Capitalism',doi:''}];
 assert.equal(findDuplicate(lib,{doi:'https://doi.org/10.1215/01642472-18-2_63-33',title:'x'}),lib[0]);
 assert.equal(findDuplicate(lib,{doi:'',title:'platform capitalism.'}),lib[1]);
 assert.equal(findDuplicate(lib,{doi:'10.9/new',title:'Something else'}),null);
-console.log('PASS: DOI finding, junk PDF fields ignored, title from page layout, Crossref mapping, title matching, duplicates.');
+console.log('PASS: DOI finding, junk PDF fields ignored, title from page layout, Crossref/OpenAlex mapping, title and author matching (incl. CJK), duplicates.');
