@@ -61,3 +61,7 @@ node outline-check.cjs
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, and outline ordering and Markdown export. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
 
 `?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
+
+## Fonts
+
+Figtree and IBM Plex Mono are bundled in `dist/fonts` under the SIL Open Font License 1.1 (licence texts included there), so the app makes no font requests to the internet.

@@ -35,8 +35,6 @@ function renderMap(){
  $('#summary').oninput=e=>{data.summary=e.target.value;save();};$('#add-keyword').onclick=()=>editKeyword();$('#import-chat').onclick=()=>importThread();$('#connect').onclick=()=>{linking=!linking;linkStart=null;drawMap();};
  $('#remove-edge').onclick=()=>{data.edges=data.edges.filter(e=>e.id!==selected);selected=null;save();drawMap();};drawMap();setupDrag();
 }
-// Each bar keeps a small fixed tilt derived from its id, like stickers placed by hand.
-function barTilt(id){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))|0;return ((Math.abs(h)%7)-3)*0.7;}
 // Hovering a bar previews its introduction and the thoughts filed under it.
 function keywordBar(k){
  const papers=data.papers.filter(p=>p.keywords.includes(k.id)).length,thoughts=(data.claims||[]).filter(c=>c.keywords.includes(k.id)&&c.status!=='Abandoned').sort((a,b)=>b.updated.localeCompare(a.updated));
@@ -47,7 +45,7 @@ function drawMap(){
  const width=Math.max(1000,...data.keywords.map(k=>k.x+300)),height=Math.max(480,...data.keywords.map(k=>k.y+230));canvas.style.width=width+'px';canvas.style.height=height+'px';
  canvas.innerHTML='<svg aria-label="Keyword connections"></svg>';
  const svg=canvas.querySelector('svg');for(const e of data.edges){const a=getKeyword(e.a),b=getKeyword(e.b);if(!a||!b)continue;for(const hit of [false,true]){const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',`M${a.x+130},${a.y+24} C${(a.x+b.x)/2+130},${a.y+24} ${(a.x+b.x)/2+130},${b.y+24} ${b.x+130},${b.y+24}`);path.setAttribute('class',hit?'wire-hit':'wire'+(e.id===selected?' selected':''));if(hit){path.dataset.edge=e.id;path.setAttribute('tabindex','0');path.setAttribute('role','button');path.setAttribute('aria-label',`Connection: ${a.title} — ${b.title}`);}svg.append(path);}}
- for(const k of data.keywords){const b=document.createElement('button');b.className='folder'+(selected===k.id||linkStart===k.id?' selected':'');b.style.cssText=`left:${k.x}px;top:${k.y}px;--folder:${colors[k.color%colors.length]||colors[0]};--tilt:${barTilt(k.id)}deg`;b.dataset.keyword=k.id;b.innerHTML=keywordBar(k);canvas.append(b);}
+ for(const k of data.keywords){const b=document.createElement('button');b.className='folder'+(selected===k.id||linkStart===k.id?' selected':'');b.style.cssText=`left:${k.x}px;top:${k.y}px;--folder:${colors[k.color%colors.length]||colors[0]}`;b.dataset.keyword=k.id;b.innerHTML=keywordBar(k);canvas.append(b);}
  if(!data.keywords.length)canvas.insertAdjacentHTML('beforeend','<div class="canvas-empty"><div class="empty-icon"></div><h3>No keywords yet</h3><p>Add a keyword, attach papers, and connect it to other keywords.</p></div>');
  $('#connect').setAttribute('aria-pressed',linking);$('#map-hint').textContent=linking?(linkStart?'SELECT THE SECOND KEYWORD':'SELECT THE FIRST KEYWORD'):'KEYWORDS & CONNECTIONS';$('#remove-edge').disabled=!data.edges.some(e=>e.id===selected);renderKeywordPanel();
 }
