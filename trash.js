@@ -2,7 +2,7 @@ const trashLifetime=30*24*60*60*1000;
 function deletedCommentThreads(){return [...data.threads,...data.trash.filter(e=>e.type==='thread').map(e=>e.item)];}
 function maintainTrash(now=Date.now()){
  if(storageProblem)return;
- const before=structuredClone(data);let changed=false;
+ const before=structuredClone(data);let changed=false;const goneImages=[];
  // Existing deletions get a fresh 30-day window when this policy is introduced.
  if(!data.trashPolicyStarted){data.trashPolicyStarted=new Date(now).toISOString();for(const e of data.trash)e.expiresAt=now+trashLifetime;changed=true;}
  for(const e of data.trash){if(!e.expiresAt){e.expiresAt=(Date.parse(e.at)||now)+trashLifetime;changed=true;}}
@@ -12,12 +12,16 @@ function maintainTrash(now=Date.now()){
   if(now-Date.parse(b.deletedAt)>=trashLifetime){
    // Keep only routing IDs, so surviving replies do not lose their thread.
    const route={id:b.id,parentId:b.parentId,subthread:b.subthread,anchor:b.anchor? 'expired:'+b.id:null,deleted:true,expired:true};
+   goneImages.push(...(b.images||[]).map(im=>im.id));
    Object.keys(b).forEach(k=>delete b[k]);Object.assign(b,route);changed=true;
   }
  }
  const expired=data.trash.filter(e=>e.expiresAt<=now);
+ // Pictures of discussions leaving Trash go with them.
+ for(const e of expired)if(e.type==='thread')for(const b of e.item.blocks||[])goneImages.push(...(b.images||[]).map(im=>im.id));
  if(expired.length){data.pendingPDFDeletes=[...new Set([...(data.pendingPDFDeletes||[]),...expired.filter(e=>e.type==='paper'&&e.item.pdfName).map(e=>e.item.id)])];data.trash=data.trash.filter(e=>e.expiresAt>now);changed=true;}
  if(changed&&!save()){data=before;return;}
+ if(goneImages.length&&typeof deleteImages==='function')deleteImages(goneImages);
  flushExpiredPDFs();
 }
 async function flushExpiredPDFs(){
