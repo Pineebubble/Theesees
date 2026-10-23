@@ -59,9 +59,10 @@ node trash-check.cjs
 node claims-check.cjs
 node outline-check.cjs
 node pdf-check.cjs
+node scripts-check.cjs
 ```
 
-These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, and PDF passage matching. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
+These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
 
 `?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
 
