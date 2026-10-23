@@ -466,3 +466,9 @@ dialog{border-radius:10px;box-shadow:0 24px 64px #1b1b1933;padding:26px 28px}
 .heading-swatch{display:block;width:56px;height:10px;background:var(--tag);margin:0 0 14px}
 /* Boxes fit what they hold. */
 .source-text,.original-text-panel .source-text,.thread-source-paper{min-height:0}
+
+/* Literature stack: each sheet runs on behind the next folder, so a pulled-out file never shows its bottom edge.
+   A pulled file stays in normal stacking order (later folders sit on top of it). */
+.drawer-file.is-pulled{z-index:auto}
+.file-sheet:after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:36px;background:var(--file-color);pointer-events:none}
+.drawer-file.is-pulled .file-sheet{box-shadow:0 -6px 18px #1b1b1910}
