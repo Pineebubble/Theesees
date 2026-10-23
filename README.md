@@ -24,7 +24,7 @@ This repository contains application code and design assets, not personal papers
 
 - Records, pasted text, passages, conversations, replies, and key thoughts use browser localStorage.
 - Attached PDFs use browser IndexedDB.
-- **Export records** downloads JSON records but **does not include PDFs**. Keep original PDFs separately.
+- **Export records** downloads JSON records but **does not include PDFs or pictures in comments**. Keep original PDFs separately.
 - **Backup import is not implemented yet.** The JSON export is a safeguard, not a one-click migration feature. Do not clear the original browser or discard its files before migration has been implemented and verified.
 - There is no cloud sync. GitHub does not synchronize research data.
 - Do not commit exported research, private conversations, or PDFs to this public repository.
@@ -38,7 +38,7 @@ This repository contains application code and design assets, not personal papers
 - Everything you add can be edited and deleted: themes and connections, papers (details, DOI, text, themes, attached PDF), passages, discussions (title, text, status, platform), comments (including their linked passage), thoughts and evidence links, and outline parts.
 - Source-linked discussions with paper and theme filters.
 - Original imported conversations preserved alongside new comments and pasted AI replies.
-- Comments support **bold** and *italic* (B / I buttons or ⌘B / ⌘I).
+- Comments support **bold** and *italic* (B / I buttons or ⌘B / ⌘I) and pictures: add them with the button, paste a screenshot into the comment box, or drop files on it. Pictures are stored in the browser's file storage next to PDFs (large ones scaled to 2000px), open full-size on click, and are deleted when their comment or discussion expires from Trash.
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
 - Key-thought markers, editing, and Trash with 30-day recovery.
 - **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no theme, not in the outline).

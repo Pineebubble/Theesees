@@ -48,4 +48,7 @@ assert.equal(run("plainMarks('A **key** idea and *this* one')"),'A key idea and 
 run(`t={transcript:'',blocks:[{id:'f',parentId:null,anchor:null,text:'Not **just** *labour*',role:'Me',key:true,at:new Date().toISOString()}]};`);
 assert.match(run('blockTree(t)'),/Not <strong>just<\/strong> <em>labour<\/em>/);
 assert.match(run('threadedDiscussionView(t)'),/★ Not just labour/);
+// Pictures: a comment's images render as thumbnails; a comment with only pictures is allowed when the form has them.
+run(`t={transcript:'',blocks:[{id:'p',parentId:null,anchor:null,text:'',images:[{id:'img1',name:'chat.png',type:'image/png'}],role:'AI',at:new Date().toISOString()}]};`);
+assert.match(run('blockTree(t)'),/data-view-img="img1"/);assert.match(run('blockTree(t)'),/data-img-id="img1"/);
 console.log('PASS: legacy reply chains render flat, explicit branches stay separate, ordinary replies continue in their thread, parent links preserved.');
