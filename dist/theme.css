@@ -612,3 +612,14 @@ dialog.lightbox::backdrop{background:#1b1b19d9}
 /* Theme panel: a few of the theme's papers, then a jump to the full list */
 .panel-papers-label{margin:18px 0 4px}
 .panel-more{margin-top:10px;font-size:14px}
+/* Thoughts list: the left edge takes the colour of the thought's first theme; gaps are flagged in pink */
+.claim-entry,.claim-entry.status-hunch,.claim-entry.status-developing,.claim-entry.status-defensible{border-left-color:var(--theme)}
+.claim-entry .badge.unlinked{color:#c93d70}
+.claim-gaps{color:#c93d70!important}
+.overview button.needs{color:#c93d70}
+
+/* Left edges take the colour of the theme they belong to (the paper's or the thought's first theme). */
+.quote-preview,.block-source blockquote{border-left-color:var(--theme,var(--c-stone))}
+.passage{border-left-color:var(--theme,var(--c-stone))}
+.passage.active{border-left-color:var(--ink)}
+.outline-claim,.outline-claim.status-hunch,.outline-claim.status-developing,.outline-claim.status-defensible{border-left-color:var(--theme)}
