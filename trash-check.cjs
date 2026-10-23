@@ -18,4 +18,9 @@ assert.equal(run('data.threads[0].blocks[0].expired'),true);
 assert.equal(run('data.threads[0].blocks[1].text'),'Keep reply');
 assert.equal(run('data.threads[0].blocks[1].parentId'),'b');
 assert.equal(run('goneImages.sort().join()'),'pic-b,pic-x'); // pictures of expired comments and discussions are deleted
+// Emptying Trash removes everything still in it at once, deleted comments included.
+run(`data.trash.push({id:'n1',type:'keyword',item:{id:'kk'},at:new Date().toISOString(),expiresAt:Date.now()+20*86400000});data.threads[0].blocks.push({id:'d2',text:'Recent deletion',deleted:true,deletedAt:new Date().toISOString(),parentId:null});`);
+assert.equal(run('trashCount()'),2);
+run('maintainTrash(Number.MAX_SAFE_INTEGER);');
+assert.equal(run('trashCount()'),0);assert.equal(run('data.threads[0].blocks.find(b=>b.id==="d2").text'),undefined);
 console.log('PASS: 30-day grace period, expiry, removal of comment contents and history, surviving reply links, failed-save rollback, pictures removed on expiry.');
