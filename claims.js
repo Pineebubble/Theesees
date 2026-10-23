@@ -3,7 +3,7 @@
 data.claims ||= [];
 const claimStatuses=['Hunch','Developing','Defensible','Abandoned'];
 const relations={supports:'Supports',challenges:'Challenges',qualifies:'Qualifies'};
-let currentClaim=null,claimQuery='',claimStatus='All',claimKeyword='all',claimGap='All';
+let currentClaim=null,claimQuery='',claimStatus='All',claimKeyword='all',claimGap='All',claimPaper='all';
 // List or colour-block view; remembered per browser as a convenience only.
 let claimView=(()=>{try{return localStorage.getItem('theesees-thought-view')==='blocks'?'blocks':'list';}catch{return 'list';}})();
 const getClaim=id=>data.claims.find(c=>c.id===id);
@@ -62,19 +62,27 @@ function deleteClaim(id){
 }
 function restoreClaim(entry){data.claims.push(entry.item);}
 
+// Papers a thought is connected to: those its evidence passages come from, and those linked to the discussion it was made in.
+function claimPapers(c){
+ const ids=new Set(liveEvidence(c).map(e=>e.passage.paperId));
+ for(const o of c.origins){const t=data.threads.find(t=>t.id===o.threadId);if(!t)continue;(t.paperIds||[]).forEach(id=>ids.add(id));t.passageIds.forEach(pid=>{const h=data.passages.find(h=>h.id===pid);if(h)ids.add(h.paperId);});}
+ return ids;
+}
 function claimFilters(c){
  const gaps=claimGaps(c);
- return c.text.toLowerCase().includes(claimQuery.toLowerCase())&&(claimStatus==='All'||c.status===claimStatus)&&(claimKeyword==='all'||c.keywords.includes(claimKeyword))&&(claimGap==='All'||(claimGap==='Needs work'?gaps.length:claimGap==='From conversations'?c.origins.length:claimGap==='Not in outline'?typeof placementOf==='function'&&!placementOf(c.id):gaps.includes(claimGap)));
+ return (claimPaper==='all'||claimPapers(c).has(claimPaper))&&c.text.toLowerCase().includes(claimQuery.toLowerCase())&&(claimStatus==='All'||c.status===claimStatus)&&(claimKeyword==='all'||c.keywords.includes(claimKeyword))&&(claimGap==='All'||(claimGap==='Needs work'?gaps.length:claimGap==='From conversations'?c.origins.length:claimGap==='Not in outline'?typeof placementOf==='function'&&!placementOf(c.id):gaps.includes(claimGap)));
 }
 const viewToggle=()=>`<div class="view-toggle" role="group" aria-label="Thought view">${[['list','List'],['blocks','Blocks']].map(([v,l])=>`<button data-claim-view="${v}" aria-pressed="${claimView===v}">${l}</button>`).join('')}</div>`;
 function renderThoughts(){
  if(claimKeyword!=='all'&&!getKeyword(claimKeyword))claimKeyword='all';
+ if(claimPaper!=='all'&&!getPaper(claimPaper))claimPaper='all';
  if(claimView==='blocks')return renderThoughtBlocks();
- $('#main').innerHTML=`<div class="page-heading"><div><h1>Thoughts</h1><p>Claims in your own words, each tied to the passages that support or challenge it.</p></div><div class="actions">${viewToggle()}<button id="add-claim" class="primary">＋ New thought</button></div></div><div class="discussion-filters claim-filters"><label>Search<input id="search-claims" placeholder="Words in a thought" value="${esc(claimQuery)}"></label><label>Status<select id="claim-status"><option>All</option>${claimStatuses.map(s=>`<option ${s===claimStatus?'selected':''}>${s}</option>`).join('')}</select></label><label>Theme<select id="claim-keyword"><option value="all">All themes</option>${alpha(data.keywords).map(k=>`<option value="${esc(k.id)}" ${claimKeyword===k.id?'selected':''}>${esc(k.title)}</option>`).join('')}</select></label><label>Show<select id="claim-gap">${['All','Needs work','No evidence','No counter-evidence','No theme','From conversations','Not in outline'].map(x=>`<option ${x===claimGap?'selected':''}>${x}</option>`).join('')}</select></label></div><div class="archive-count" id="claim-count" role="status"></div><div id="claim-list" class="list"></div>`;
+ $('#main').innerHTML=`<div class="page-heading"><div><h1>Thoughts</h1><p>Claims in your own words, each tied to the passages that support or challenge it.</p></div><div class="actions">${viewToggle()}<button id="add-claim" class="primary">＋ New thought</button></div></div><div class="discussion-filters claim-filters"><label>Search<input id="search-claims" placeholder="Words in a thought" value="${esc(claimQuery)}"></label><label>Status<select id="claim-status"><option>All</option>${claimStatuses.map(s=>`<option ${s===claimStatus?'selected':''}>${s}</option>`).join('')}</select></label><label>Literature<select id="claim-paper"><option value="all">All literature</option>${alpha(data.papers).map(p=>`<option value="${esc(p.id)}" ${claimPaper===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}</select></label><label>Theme<select id="claim-keyword"><option value="all">All themes</option>${alpha(data.keywords).map(k=>`<option value="${esc(k.id)}" ${claimKeyword===k.id?'selected':''}>${esc(k.title)}</option>`).join('')}</select></label><label>Show<select id="claim-gap">${['All','Needs work','No evidence','No counter-evidence','No theme','From conversations','Not in outline'].map(x=>`<option ${x===claimGap?'selected':''}>${x}</option>`).join('')}</select></label></div><div class="archive-count" id="claim-count" role="status"></div><div id="claim-list" class="list"></div>`;
  $('#add-claim').onclick=()=>editClaim();
  $('#search-claims').oninput=e=>{claimQuery=e.target.value;claimList();};
  $('#claim-status').onchange=e=>{claimStatus=e.target.value;claimList();};
  $('#claim-keyword').onchange=e=>{claimKeyword=e.target.value;claimList();};
+ $('#claim-paper').onchange=e=>{claimPaper=e.target.value;claimList();};
  $('#claim-gap').onchange=e=>{claimGap=e.target.value;claimList();};
  claimList();
 }
