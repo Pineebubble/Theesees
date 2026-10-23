@@ -1,0 +1,107 @@
+'use strict';
+/* Thoughts: claims written in your own words, linked to evidence passages and to the conversations they came from. */
+data.claims ||= [];
+const claimStatuses=['Hunch','Developing','Defensible','Abandoned'];
+const relations={supports:'Supports',challenges:'Challenges',qualifies:'Qualifies'};
+let currentClaim=null,claimQuery='',claimStatus='All',claimKeyword='all',claimGap='All';
+const getClaim=id=>data.claims.find(c=>c.id===id);
+function liveEvidence(c){return c.evidence.map(e=>({...e,passage:data.passages.find(h=>h.id===e.passageId)})).filter(e=>e.passage&&getPaper(e.passage.paperId));}
+function claimGaps(c){
+ const ev=liveEvidence(c),gaps=[];
+ if(c.status==='Abandoned')return gaps;
+ if(!ev.length)gaps.push('No evidence');
+ else if(ev.every(e=>e.relation==='supports'))gaps.push('No counter-evidence');
+ if(!c.keywords.some(getKeyword))gaps.push('No keyword');
+ return gaps;
+}
+function claimsForPassage(id){return data.claims.filter(c=>c.evidence.some(e=>e.passageId===id));}
+function claimForBlock(id){return data.claims.find(c=>c.origins.some(o=>o.blockId===id));}
+function evidenceSummary(c){const ev=liveEvidence(c);return Object.keys(relations).map(r=>[r,ev.filter(e=>e.relation===r).length]).filter(([,n])=>n).map(([r,n])=>`<span class="relation-chip rel-${r}">${n} ${relations[r].toLowerCase()}</span>`).join('');}
+function newClaim(text,{status='Hunch',keywords=[],evidence=[],origins=[]}={}){const at=new Date().toISOString();return {id:uid(),text,note:'',status,keywords,evidence,origins,created:at,updated:at,revisions:[]};}
+function commitClaims(change){const before=structuredClone(data.claims);const result=change();if(save())return result||true;data.claims=before;return false;}
+
+/* Create or edit a claim. `seed` pre-fills a new claim from a passage or a conversation comment. */
+function editClaim(id=null,seed={}){
+ const c=getClaim(id),h=seed.passageId&&data.passages.find(x=>x.id===seed.passageId);
+ const sourceField=!c&&h?`<label>How does the passage relate to this thought?<select name="relation">${Object.entries(relations).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}<option value="">Don’t link it</option></select></label><blockquote class="reply-context">${esc(h.location)} · ${esc(h.quote.slice(0,280))}</blockquote>`:'';
+ modal(c?'Edit thought':'New thought',`<p class="claim-hint">Write one claim you could defend or attack, in your own words. Short is better.</p><form>${seed.fromText?`<blockquote class="reply-context">From the conversation: ${esc(seed.fromText.slice(0,280))}</blockquote>`:''}<label>Thought<textarea name="text" required rows="4" maxlength="1000" placeholder="e.g. Attention is extracted like labour, but without a wage relation.">${esc(c?.text??seed.text??'')}</textarea></label><label>Status<select name="status">${claimStatuses.map(s=>`<option ${(c?.status||'Hunch')===s?'selected':''}>${s}</option>`).join('')}</select></label>${sourceField}<label>Keywords</label>${keywordChecks(c?.keywords||seed.keywords||[])}${actions(c?'Save thought':'Create thought')}</form>`,f=>{
+  const text=f.get('text').trim();if(!text)throw Error('Write the thought first.');
+  const fields={text,status:f.get('status'),keywords:f.getAll('keyword')};
+  const saved=commitClaims(()=>{
+   if(c){if(c.text!==text)c.revisions.push({text:c.text,at:new Date().toISOString()});Object.assign(c,fields,{updated:new Date().toISOString()});return c;}
+   const fresh=newClaim(text,{...fields,evidence:h&&f.get('relation')?[{passageId:h.id,relation:f.get('relation')}]:[],origins:seed.origin?[seed.origin]:[]});
+   data.claims.push(fresh);return fresh;
+  });
+  if(!saved)return;closeModal();
+  if(seed.stay){render();toast('Thought created. Find it in the Thoughts tab.');}else openClaim(saved.id);
+ });
+}
+/* Promote a comment (yours or a pasted AI reply) into a thought, keeping where it came from. */
+function promoteBlock(t,b){
+ const existing=claimForBlock(b.id);if(existing)return openClaim(existing.id);
+ const keywords=[...new Set(threadPapers(t).flatMap(p=>p.keywords))];
+ editClaim(null,{text:b.role==='Me'?b.text:'',fromText:b.text,passageId:b.source?.id||threadPassages(t)[0]?.id,keywords,origin:{threadId:t.id,blockId:b.id},stay:true});
+}
+function linkEvidence(c){
+ const byPaper=data.papers.map(p=>[p,data.passages.filter(h=>h.paperId===p.id)]).filter(([,hs])=>hs.length);
+ modal('Link evidence',`<p class="claim-hint">Choose how each saved passage bears on this thought. These are your judgements, not verified facts.</p><blockquote class="reply-context">${esc(c.text)}</blockquote><form><div class="evidence-picker">${byPaper.map(([p,hs])=>`<h3>${esc(p.title)}</h3>${hs.map(h=>{const cur=c.evidence.find(e=>e.passageId===h.id)?.relation||'';return `<div class="evidence-option"><select name="rel-${esc(h.id)}" aria-label="Relation for passage at ${esc(h.location)}"><option value="">—</option>${Object.entries(relations).map(([v,l])=>`<option value="${v}" ${cur===v?'selected':''}>${l}</option>`).join('')}</select><div><small>${esc(h.location)}</small><p>${esc(h.quote.slice(0,240))}${h.quote.length>240?'…':''}</p></div></div>`;}).join('')}`).join('')||'<p>No passages saved yet. Open a paper and save a passage first.</p>'}</div>${actions('Save evidence')}</form>`,f=>{
+  // Passages not shown (e.g. in Trash) keep their links so restoring them restores the evidence.
+  const shown=new Set(byPaper.flatMap(([,hs])=>hs.map(h=>h.id)));
+  if(!commitClaims(()=>{c.evidence=[...c.evidence.filter(e=>!shown.has(e.passageId)),...[...shown].filter(id=>f.get('rel-'+id)).map(id=>({passageId:id,relation:f.get('rel-'+id)}))];c.updated=new Date().toISOString();}))return;
+  closeModal();renderClaim();
+ });
+}
+function deleteClaim(id){
+ const c=getClaim(id);if(!c)return;
+ modal('Delete thought?',`<blockquote>${esc(c.text)}</blockquote><p>Move this thought to Trash for 30 days? Passages and conversations are not affected. Consider marking it “Abandoned” instead to keep a record of what you stopped believing.</p><form>${actions('Move to Trash')}</form>`,()=>{
+  const before=structuredClone(data);data.trash.push({id:uid(),type:'claim',item:structuredClone(c),at:new Date().toISOString()});data.claims=data.claims.filter(x=>x.id!==id);
+  if(!save()){data=before;return;}closeModal();navigate('thoughts');toast('Thought moved to Trash.');
+ });
+}
+function restoreClaim(entry){data.claims.push(entry.item);}
+
+function claimFilters(c){
+ const gaps=claimGaps(c);
+ return c.text.toLowerCase().includes(claimQuery.toLowerCase())&&(claimStatus==='All'||c.status===claimStatus)&&(claimKeyword==='all'||c.keywords.includes(claimKeyword))&&(claimGap==='All'||(claimGap==='Needs work'?gaps.length:claimGap==='From conversations'?c.origins.length:gaps.includes(claimGap)));
+}
+function renderThoughts(){
+ if(claimKeyword!=='all'&&!getKeyword(claimKeyword))claimKeyword='all';
+ $('#main').innerHTML=`<div class="page-heading"><div><h1>Thoughts</h1><p>Claims in your own words, each tied to the passages that support or challenge it.</p></div><div class="actions"><button data-trash="true">Trash</button><button id="add-claim" class="primary">＋ New thought</button></div></div><div class="discussion-filters claim-filters"><label>Search<input id="search-claims" placeholder="Words in a thought" value="${esc(claimQuery)}"></label><label>Status<select id="claim-status"><option>All</option>${claimStatuses.map(s=>`<option ${s===claimStatus?'selected':''}>${s}</option>`).join('')}</select></label><label>Keyword<select id="claim-keyword"><option value="all">All keywords</option>${data.keywords.map(k=>`<option value="${esc(k.id)}" ${claimKeyword===k.id?'selected':''}>${esc(k.title)}</option>`).join('')}</select></label><label>Show<select id="claim-gap">${['All','Needs work','No evidence','No counter-evidence','No keyword','From conversations'].map(x=>`<option ${x===claimGap?'selected':''}>${x}</option>`).join('')}</select></label></div><div class="archive-count" id="claim-count" role="status"></div><div id="claim-list" class="list"></div>`;
+ $('#add-claim').onclick=()=>editClaim();
+ $('#search-claims').oninput=e=>{claimQuery=e.target.value;claimList();};
+ $('#claim-status').onchange=e=>{claimStatus=e.target.value;claimList();};
+ $('#claim-keyword').onchange=e=>{claimKeyword=e.target.value;claimList();};
+ $('#claim-gap').onchange=e=>{claimGap=e.target.value;claimList();};
+ claimList();
+}
+function claimList(){
+ const cs=data.claims.filter(claimFilters).sort((a,b)=>b.updated.localeCompare(a.updated)),needs=data.claims.filter(c=>claimGaps(c).length).length;
+ $('#claim-count').textContent=`${cs.length} of ${data.claims.length} thoughts · ${needs} need work`;
+ $('#claim-list').innerHTML=cs.map(c=>{const ks=c.keywords.map(getKeyword).filter(Boolean),gaps=claimGaps(c);return `<article class="archive-entry claim-entry status-${esc(c.status.toLowerCase())}"><div class="archive-entry-head"><div><span class="badge claim-status">${esc(c.status)}</span>${evidenceSummary(c)}${gaps.map(g=>`<span class="badge unlinked">${esc(g)}</span>`).join('')}<h2><button class="discussion-title-link" data-claim="${esc(c.id)}">${esc(c.text)}</button></h2></div><div class="actions"><button data-claim="${esc(c.id)}">Open ↗</button></div></div><div class="tag-row claim-tags">${ks.map(k=>`<span class="keyword-tag" style="--tag:${colors[k.color%colors.length]}">${esc(k.title)}</span>`).join('')}${c.origins.length?`<small>From ${c.origins.length} conversation comment${c.origins.length>1?'s':''}</small>`:''}</div></article>`;}).join('')||empty(data.claims.length?'No matching thoughts':'No thoughts yet',data.claims.length?'Try another filter.':'Write one with “New thought”, or use “→ Thought” on a comment or passage to turn it into a claim.');
+}
+function openClaim(id){currentClaim=id;page='claim';render();}
+function renderClaim(){
+ const c=getClaim(currentClaim);if(!c){navigate('thoughts');return;}
+ const ev=liveEvidence(c),missing=c.evidence.length-ev.length,ks=c.keywords.map(getKeyword).filter(Boolean),gaps=claimGaps(c);
+ const group=r=>{const items=ev.filter(e=>e.relation===r);return `<section class="evidence-group rel-${r}"><h3>${relations[r]} <small>${items.length}</small></h3>${items.map(e=>{const p=getPaper(e.passage.paperId);return `<article class="evidence-card"><small>${esc(p.title)} · ${esc(e.passage.location)}</small><blockquote>${esc(e.passage.quote)}</blockquote><div class="actions"><button data-source="${esc(e.passage.id)}">Open in paper ↗</button><select data-evidence-relation="${esc(e.passage.id)}" aria-label="Change relation">${Object.entries(relations).map(([v,l])=>`<option value="${v}" ${v===r?'selected':''}>${l}</option>`).join('')}</select><button data-unlink-evidence="${esc(e.passage.id)}">Unlink</button></div></article>`;}).join('')||`<p class="claim-hint">${r==='challenges'?'Nothing challenges this yet. What would a sceptical reader say?':'None linked.'}</p>`}</section>`;};
+ const origins=c.origins.map(o=>{const t=data.threads.find(t=>t.id===o.threadId),b=t?.blocks?.find(b=>b.id===o.blockId);return t?`<div class="discussion-card"><small>${esc(t.title)}</small><p>${esc((b&&!b.deleted?b.text:'Comment removed').slice(0,220))}</p><button data-thread="${esc(t.id)}">Open conversation ↗</button></div>`:'<p class="claim-hint">The original conversation is in Trash.</p>';}).join('');
+ $('#main').innerHTML=`<div class="reader-heading claim-heading"><button class="link back" id="back-thoughts">← Thoughts</button><h1 class="claim-text">${esc(c.text)}</h1><div class="reader-meta"><label>Status<select id="claim-status-edit">${claimStatuses.map(s=>`<option ${s===c.status?'selected':''}>${s}</option>`).join('')}</select></label><button id="edit-claim">Edit thought</button><button class="danger" id="delete-claim">Delete</button></div><div class="tag-row">${ks.map(k=>`<button class="keyword-tag" style="--tag:${colors[k.color%colors.length]}" data-claim-keyword="${esc(k.id)}">${esc(k.title)}</button>`).join('')||'<small>No keywords.</small>'}</div>${gaps.length?`<p class="claim-gaps">Needs work: ${gaps.map(esc).join(' · ')}</p>`:''}</div><div class="claim-layout"><section class="claim-evidence"><div class="section-top"><h2>Evidence</h2><button id="link-evidence" class="warm">＋ Link passages</button></div>${missing?`<p class="claim-hint">${missing} linked passage${missing>1?'s are':' is'} in Trash. Restore ${missing>1?'them':'it'} to bring the evidence back.</p>`:''}${Object.keys(relations).map(group).join('')}</section><aside class="claim-side"><h3>Reasoning</h3><textarea id="claim-note" aria-label="Reasoning" placeholder="Why do you believe this? What would change your mind?">${esc(c.note)}</textarea><small id="claim-note-state">Saved automatically on this browser</small><h3>Came from</h3>${origins||'<p class="claim-hint">Written directly, not from a conversation.</p>'}${c.revisions.length?`<details class="legacy-notes"><summary>Earlier wordings (${c.revisions.length})</summary>${c.revisions.slice().reverse().map(r=>`<p><small>${esc(new Date(r.at).toLocaleString())}</small><br>${esc(r.text)}</p>`).join('')}</details>`:''}</aside></div>`;
+ $('#back-thoughts').onclick=()=>navigate('thoughts');
+ $('#claim-status-edit').onchange=e=>{if(commitClaims(()=>{c.status=e.target.value;c.updated=new Date().toISOString();}))renderClaim();};
+ $('#edit-claim').onclick=()=>editClaim(c.id);$('#delete-claim').onclick=()=>deleteClaim(c.id);$('#link-evidence').onclick=()=>linkEvidence(c);
+ $('#claim-note').oninput=e=>{c.note=e.target.value;if(save())$('#claim-note-state').textContent='Saved on this browser';};
+}
+/* Shown under each passage in the reader. */
+function passageClaimsHTML(h){const cs=claimsForPassage(h.id);return `<div class="passage-claims">${cs.map(c=>{const r=c.evidence.find(e=>e.passageId===h.id).relation;return `<button class="link" data-claim="${esc(c.id)}"><span class="relation-chip rel-${r}">${relations[r]}</span> ${esc(c.text.slice(0,120))}</button>`;}).join('')}<button data-claim-from-passage="${esc(h.id)}">→ Thought from passage</button></div>`;}
+
+document.addEventListener('click',e=>{
+ const el=e.target.closest('[data-claim],[data-claim-from-passage],[data-unlink-evidence],[data-claim-keyword]');if(!el)return;const d=el.dataset;
+ if(d.claim)return openClaim(d.claim);
+ if(d.claimFromPassage){const h=data.passages.find(x=>x.id===d.claimFromPassage);return editClaim(null,{passageId:h.id,keywords:getPaper(h.paperId)?.keywords||[],stay:true});}
+ if(d.claimKeyword){claimKeyword=d.claimKeyword;claimStatus=claimGap='All';claimQuery='';return navigate('thoughts');}
+ const c=getClaim(currentClaim);if(c&&commitClaims(()=>{c.evidence=c.evidence.filter(x=>x.passageId!==d.unlinkEvidence);c.updated=new Date().toISOString();}))renderClaim();
+});
+document.addEventListener('change',e=>{
+ const el=e.target.closest('[data-evidence-relation]');if(!el)return;const c=getClaim(currentClaim),ev=c?.evidence.find(x=>x.passageId===el.dataset.evidenceRelation);if(!ev)return;
+ if(commitClaims(()=>{ev.relation=el.value;c.updated=new Date().toISOString();}))renderClaim();
+});
