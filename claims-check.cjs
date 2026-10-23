@@ -3,7 +3,7 @@ const c=vm.createContext({console,structuredClone,Date,Map,document:{addEventLis
 vm.runInContext(`let saved=true,formHandler,page='',rendered='',lastModal='';let data={keywords:[{id:'k',title:'Attention',color:5}],papers:[{id:'p',title:'Paper',keywords:['k']}],passages:[{id:'h',paperId:'p',quote:'Source quotation',location:'p. 3'},{id:'h2',paperId:'p',quote:'Counter point',location:'p. 9'}],threads:[{id:'t',title:'Chat',blocks:[{id:'b',role:'AI',text:'Attention works like unpaid labour.',source:{id:'h'}}],passageIds:['h']}],trash:[]};
 const uid=(()=>{let n=0;return()=>'c'+(++n);})();const esc=s=>String(s??'').replace(/</g,'&lt;');const colors=['#fff'];
 const getPaper=id=>data.papers.find(p=>p.id===id),getKeyword=id=>data.keywords.find(k=>k.id===id);
-const save=()=>saved;const modal=(a,b,c)=>{lastModal=b;formHandler=c;};const closeModal=()=>{};const actions=()=>'';const empty=t=>t;const toast=()=>{};const keywordChecks=()=>'';
+const save=()=>saved;const modal=(a,b,c)=>{lastModal=b;formHandler=c;};const closeModal=()=>{};const actions=()=>'';const empty=t=>t;const toast=()=>{};const keywordChecks=()=>'';const alpha=(l,k='title')=>[...l].sort((a,b)=>String(a[k]).localeCompare(String(b[k])));
 const render=()=>{rendered=page;};const navigate=v=>{page=v;render();};const $=()=>({});
 const threadPapers=t=>[getPaper('p')],threadPassages=t=>[data.passages[0]];`,c);
 vm.runInContext(fs.readFileSync(__dirname+'/dist/claims.js','utf8'),c);
