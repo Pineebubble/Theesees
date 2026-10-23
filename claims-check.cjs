@@ -27,7 +27,7 @@ assert.equal(run('data.claims.length'),1);assert.equal(run('page'),'claim');
 // Linking evidence: relations are saved; passages not shown (in Trash) keep their links.
 run(`const cl=data.claims[0];linkEvidence(cl);formHandler({get:k=>({'rel-h':'supports','rel-h2':'challenges'})[k]||''});`);
 assert.equal(run('claimGaps(data.claims[0]).length'),0);
-assert.match(run('evidenceSummary(data.claims[0])'),/1 supports.*1 challenges/);
+assert.match(run('evidenceSummary(data.claims[0])'),/Supports 1.*Challenges 1/);
 run(`data.trash.push({type:'passage',item:data.passages.pop()});linkEvidence(data.claims[0]);formHandler({get:k=>k==='rel-h'?'qualifies':''});`);
 assert.equal(run('data.claims[0].evidence.length'),2);
 assert.equal(run('liveEvidence(data.claims[0]).length'),1);
