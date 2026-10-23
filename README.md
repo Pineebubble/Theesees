@@ -38,6 +38,7 @@ This repository contains application code and design assets, not personal papers
 - Everything you add can be edited and deleted: themes and connections, papers (details, DOI, text, themes, attached PDF), passages, discussions (title, text, status, platform), comments (including their linked passage), thoughts and evidence links, and outline parts.
 - Source-linked discussions with paper and theme filters.
 - Original imported conversations preserved alongside new comments and pasted AI replies.
+- Comments support **bold** and *italic* (B / I buttons or ⌘B / ⌘I).
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
 - Key-thought markers, editing, and Trash with 30-day recovery.
 - **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no theme, not in the outline).

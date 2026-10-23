@@ -40,4 +40,12 @@ run(`composeBlock(t,{parentId:'deep'});formHandler(new Map([['body','Main conver
 assert.equal(run('conversationRoot(t,t.blocks.at(-1)).id'),'root');
 assert.equal(run('t.blocks[2].parentId'),'reply');
 assert.match(run('blockTree(t)'),/Start subthread/);
+// **bold** and *italic* in comments: rendered in the body, stripped in previews, ordinary asterisks left alone.
+assert.equal(run("richText('A **key** idea and *this* one')"),'A <strong>key</strong> idea and <em>this</em> one');
+assert.equal(run("richText('2 * 3 * 4, a * b, and ** spaced **')"),'2 * 3 * 4, a * b, and ** spaced **');
+assert.equal(run("richText('**<b>**')"),'<strong>&lt;b></strong>');
+assert.equal(run("plainMarks('A **key** idea and *this* one')"),'A key idea and this one');
+run(`t={transcript:'',blocks:[{id:'f',parentId:null,anchor:null,text:'Not **just** *labour*',role:'Me',key:true,at:new Date().toISOString()}]};`);
+assert.match(run('blockTree(t)'),/Not <strong>just<\/strong> <em>labour<\/em>/);
+assert.match(run('threadedDiscussionView(t)'),/★ Not just labour/);
 console.log('PASS: legacy reply chains render flat, explicit branches stay separate, ordinary replies continue in their thread, parent links preserved.');

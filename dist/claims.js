@@ -42,7 +42,7 @@ function editClaim(id=null,seed={}){
 function promoteBlock(t,b){
  const existing=claimForBlock(b.id);if(existing)return openClaim(existing.id);
  const keywords=[...new Set(threadPapers(t).flatMap(p=>p.keywords))];
- editClaim(null,{text:b.role==='Me'?b.text:'',fromText:b.text,passageId:b.source?.id||threadPassages(t)[0]?.id,keywords,origin:{threadId:t.id,blockId:b.id},stay:true});
+ editClaim(null,{text:b.role==='Me'?(typeof plainMarks==='function'?plainMarks(b.text):b.text):'',fromText:typeof plainMarks==='function'?plainMarks(b.text):b.text,passageId:b.source?.id||threadPassages(t)[0]?.id,keywords,origin:{threadId:t.id,blockId:b.id},stay:true});
 }
 function linkEvidence(c){
  const byPaper=data.papers.map(p=>[p,data.passages.filter(h=>h.paperId===p.id)]).filter(([,hs])=>hs.length);
