@@ -51,7 +51,7 @@ function moveClaim(claimId,dir){const s=placementOf(claimId);if(!s)return false;
 function citeName(p){const authors=String(p.author||'').split(/;|,(?=\s*[A-Z][^,]*\s\S)|\s+and\s+|\s*&\s*/).map(a=>a.trim()).filter(Boolean);if(!authors.length)return p.title.split(/\s+/).slice(0,3).join(' ');const first=authors[0].includes(',')?authors[0].split(',')[0]:authors[0].split(/\s+/).at(-1);return first+(authors.length>2?' et al.':authors.length===2?' & '+(authors[1].includes(',')?authors[1].split(',')[0]:authors[1].split(/\s+/).at(-1)):'');}
 function citation(h){const p=getPaper(h.paperId);return `(${citeName(p)}, ${p.year||'n.d.'}${h.location?', '+h.location:''})`;}
 function reference(p){return `${p.author||'Unknown author'} (${p.year||'n.d.'}). *${p.title}*.${p.doi?` https://doi.org/${p.doi}`:''}`;}
-const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+// plural() comes from workspace.js.
 const oneLine=s=>String(s).replace(/\s+/g,' ').trim();
 function outlineMarkdown({quotes=true,reasoning=true,status=false}={}){
  const nums=partNumbers(),cited=new Set(),out=['# Thesis outline','',`_Draft exported from Theesees on ${new Date().toLocaleDateString()}. Claims are in your own words; evidence links are your judgements._`,''];
