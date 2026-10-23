@@ -1,6 +1,6 @@
 # Theesees
 
-A browser-local literature-reading and thinking workspace. Organize papers, connect keywords, save source passages, and preserve AI conversations and your developing thoughts.
+A browser-local literature-reading and thinking workspace. Organize papers, connect themes, save source passages, and preserve AI conversations and your developing thoughts.
 
 ## Use on another computer
 
@@ -31,16 +31,16 @@ This repository contains application code and design assets, not personal papers
 
 ## Features
 
-- Editable colored keyword folders and connections; links to literature.
+- Editable colored theme folders and connections; links to literature.
 - Pull-out literature drawer; editable title, authors, and year.
 - PDF reading with PDF.js: select text in a PDF to save it as a passage (page filled in automatically); saved passages are found and highlighted in the PDF, and “Show source” jumps to them. Matching ignores line breaks, hyphenation, ligatures and punctuation, and falls back to an approximate match for lightly edited quotes. Scanned PDFs without a text layer cannot be searched (no OCR).
 - Pasted-text reading and editable source passages. Long passages collapse to a few lines with “Show full passage”.
-- Everything you add can be edited and deleted: keywords and connections, papers (details, DOI, text, keywords, attached PDF), passages, discussions (title, text, status, platform), comments (including their linked passage), thoughts and evidence links, and outline parts.
-- Source-linked discussions with paper and keyword filters.
+- Everything you add can be edited and deleted: themes and connections, papers (details, DOI, text, themes, attached PDF), passages, discussions (title, text, status, platform), comments (including their linked passage), thoughts and evidence links, and outline parts.
+- Source-linked discussions with paper and theme filters.
 - Original imported conversations preserved alongside new comments and pasted AI replies.
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
 - Key-thought markers, editing, and Trash with 30-day recovery.
-- **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no keyword, not in the outline).
+- **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no theme, not in the outline).
 - **Outline**: arrange thoughts into numbered chapters and sections by drag-and-drop or menus, add a one-line argument per part, and export Markdown with evidence quotations, author–year–page citations, and a reference list. Citations are a simple author–year style, not a full citation style such as APA.
 - Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
 - Zotero CSL-JSON bibliography import, not live Zotero synchronization.
