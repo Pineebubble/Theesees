@@ -27,7 +27,7 @@ async function flushExpiredPDFs(){
 function trashDays(expiry){return Math.max(0,Math.ceil((expiry-Date.now())/86400000));}
 showTrash=function(){
  maintainTrash();
- const entries=data.trash.map(e=>`<article class="trash-row"><div><small>${esc(e.type)} · ${trashDays(e.expiresAt)} days left</small><h3>${esc(e.item.title||e.item.quote)}</h3></div><button data-restore="${esc(e.id)}">Restore</button></article>`).join('');
+ const entries=data.trash.map(e=>`<article class="trash-row"><div><small>${esc(e.type)} · ${trashDays(e.expiresAt)} days left</small><h3>${esc(e.item.title||e.item.quote||e.item.text)}</h3></div><button data-restore="${esc(e.id)}">Restore</button></article>`).join('');
  const comments=deletedCommentThreads().map(t=>(t.blocks||[]).filter(b=>b.deleted&&!b.expired).map(b=>`<article class="trash-row"><div><small>Comment · ${esc(t.title)} · ${trashDays(Date.parse(b.deletedAt)+trashLifetime)} days left</small><p>${esc(b.text)}</p></div><button data-restore-comment="${esc(b.id)}" data-comment-thread="${esc(t.id)}">Restore</button></article>`).join('')).join('');
  modal('Trash',`<p>Deleted items are kept for 30 days, then permanently removed when this prototype is open. Restore them here before the countdown ends. Surviving replies are kept.</p><div class="trash-list">${entries+comments||'<p class="help">Trash is empty.</p>'}</div>`);
 };

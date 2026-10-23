@@ -11,7 +11,7 @@ function conversationRoot(t,b){
  return b;
 }
 function blockCard(b){
- return `<article class="reply-block ${b.role==='AI'?'ai-block':'my-block'} ${b.key?'key-block':''}" id="block-${esc(b.id)}"><header><strong class="speaker-marker">${b.role==='AI'?'AI · pasted reply':'Me'}</strong><small>${esc(new Date(b.at).toLocaleDateString())}${b.key?' · ★ Key thought':''}</small></header>${blockQuote(b)}${b.deleted?'<p class="help">Comment removed. Replies are kept.</p>':`<div class="block-body">${esc(b.text)}</div>`}<div class="block-actions">${b.deleted?`<button data-block-action="restore" data-block="${esc(b.id)}">Restore</button>`:`<button data-block-action="reply" data-block="${esc(b.id)}">Reply</button><button data-block-action="branch" data-block="${esc(b.id)}">Start subthread</button><button data-block-action="edit" data-block="${esc(b.id)}">Edit</button><button data-block-action="key" data-block="${esc(b.id)}" aria-pressed="${!!b.key}">${b.key?'★ Unmark':'☆ Key thought'}</button><button data-block-action="delete" data-block="${esc(b.id)}">Delete</button>`}</div></article>`;
+ return `<article class="reply-block ${b.role==='AI'?'ai-block':'my-block'} ${b.key?'key-block':''}" id="block-${esc(b.id)}"><header><strong class="speaker-marker">${b.role==='AI'?'AI · pasted reply':'Me'}</strong><small>${esc(new Date(b.at).toLocaleDateString())}${b.key?' · ★ Key thought':''}</small></header>${blockQuote(b)}${b.deleted?'<p class="help">Comment removed. Replies are kept.</p>':`<div class="block-body">${esc(b.text)}</div>`}<div class="block-actions">${b.deleted?`<button data-block-action="restore" data-block="${esc(b.id)}">Restore</button>`:`<button data-block-action="reply" data-block="${esc(b.id)}">Reply</button><button data-block-action="branch" data-block="${esc(b.id)}">Start subthread</button><button data-block-action="edit" data-block="${esc(b.id)}">Edit</button><button data-block-action="key" data-block="${esc(b.id)}" aria-pressed="${!!b.key}">${b.key?'★ Unmark':'☆ Key thought'}</button>${typeof claimForBlock!=='function'?'':claimForBlock(b.id)?`<button data-block-action="claim" data-block="${esc(b.id)}">◆ Open thought</button>`:`<button data-block-action="claim" data-block="${esc(b.id)}">→ Thought</button>`}<button data-block-action="delete" data-block="${esc(b.id)}">Delete</button>`}</div></article>`;
 }
 function conversationGroup(t,root,seen=new Set()){
  if(seen.has(root.id))return '';seen.add(root.id);
@@ -58,6 +58,7 @@ document.addEventListener('click',e=>{
 if(action==='reply')return composeBlock(t,{parentId:b.id});
  if(action==='branch')return composeBlock(t,{parentId:b.id,subthread:true});
  if(action==='edit')return composeBlock(t,{editId:b.id});
+ if(action==='claim')return promoteBlock(t,b);
  if(action==='delete'){modal('Remove comment?',`<p>Move this comment to Trash for 30 days? Its replies will stay.</p><form>${actions('Move to Trash')}</form>`,()=>{if(commitBlocks(t,()=>{b.deleted=true;b.deletedAt=new Date().toISOString();})){closeModal();renderThread();}});return;}
  if(commitBlocks(t,()=>{if(action==='key')b.key=!b.key;if(action==='restore')b.deleted=false;}))renderThread();
 });

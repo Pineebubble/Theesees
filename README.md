@@ -38,6 +38,7 @@ This repository contains application code and design assets, not personal papers
 - Original imported conversations preserved alongside new comments and pasted AI replies.
 - Flat paper-note conversation timelines; optional subthreads tucked behind parent notes.
 - Key-thought markers, editing, and Trash with 30-day recovery.
+- **Thoughts**: claims in your own words. Promote a comment or passage with “→ Thought”, link passages as *supports*, *challenges* or *qualifies*, track status (Hunch → Developing → Defensible, or Abandoned), and filter for thoughts that need work (no evidence, no counter-evidence, no keyword).
 - Trash expiry runs while open or on the next opening. Existing deleted records get a fresh grace period when this policy is introduced. Surviving replies retain routing links.
 - Zotero CSL-JSON bibliography import, not live Zotero synchronization.
 
@@ -52,9 +53,10 @@ node reader-check.cjs
 node discussion-check.cjs
 node blocks-check.cjs
 node trash-check.cjs
+node claims-check.cjs
 ```
 
-These cover reader logic, text cleanup, replies/subthreads, metadata preservation, and Trash expiry. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
+These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, and thoughts/evidence links. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
 
 `?sandbox=1` separates test records, but PDF storage is shared; do not use real PDF IDs for destructive tests.
 
