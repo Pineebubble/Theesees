@@ -2,7 +2,15 @@
 
 A browser-local literature-reading and thinking workspace. Organize papers, connect themes, save source passages, and preserve AI conversations and your developing thoughts.
 
-## Use on another computer
+## Use it online (any computer or phone)
+
+Open **https://pineebubble.github.io/Theesees/** in your browser. The site is the `dist` folder, published to the `gh-pages` branch with `./publish-pages.sh` (it runs the checks first) after pushing `main`.
+
+The app's code is public, but your research is not: records, PDFs and pictures are still saved only in the browser you use, never on GitHub. Each device and browser therefore has its own workspace, and the online address has its own storage, separate from a local copy.
+
+One-time setup, done in the GitHub repository: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, branch **gh-pages**, folder **/ (root)**.
+
+## Use a local copy instead
 
 1. On GitHub, choose **Code → Download ZIP**, then unzip it. Alternatively, clone this repository.
 2. Open `dist/prototype.html` in Chrome or Edge. No build, account, API key, or package installation is required.
