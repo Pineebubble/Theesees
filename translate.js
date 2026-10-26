@@ -32,6 +32,16 @@ document.addEventListener('mouseup',e=>{
  setTimeout(()=>{
   const sel=trSelection(),chip=trChipEl();if(!sel){chip.hidden=true;return;}
   trText=sel.text;chip.hidden=false;const r=sel.rect;
+  // In the PDF viewer, "Save passage" appears by the selection too: sit right beside it as one bar.
+  const save=document.querySelector('#pdf-save-selection:not([hidden])');
+  chip.classList.toggle('paired',!!save);
+  if(save){
+   const b=save.getBoundingClientRect(),w=chip.offsetWidth;
+   chip.style.height=b.height+'px';chip.style.top=b.top+'px';
+   chip.style.left=(b.right+w+8<=innerWidth?b.right:b.left-w)+'px';
+   return;
+  }
+  chip.style.height='';
   chip.style.left=Math.min(innerWidth-chip.offsetWidth-8,Math.max(8,r.right-chip.offsetWidth))+'px';
   chip.style.top=Math.min(innerHeight-40,Math.max(8,r.bottom+44>innerHeight?r.top-40:r.bottom+8))+'px'; // stays on screen
  },0);
