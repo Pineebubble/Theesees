@@ -678,3 +678,10 @@ dialog.lightbox::backdrop{background:#1b1b19d9}
 #tr-download{margin-top:4px}
 .translate-to{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:13px;color:var(--muted)}
 .translate-to .view-toggle{margin:0}
+/* Related literature: the theme folders, then a few closest papers, each once */
+.related-folders{display:flex;flex-wrap:wrap;gap:8px 18px;margin-bottom:12px}
+.related-literature .related-links{display:grid;grid-template-columns:minmax(0,max-content) auto;gap:8px 14px;align-items:baseline;font-size:14px}
+.related-literature .related-links .link{text-align:left}
+.related-shared{color:var(--muted);font-size:12px}
+.related-literature .related-links:not(:has(.related-shared)){grid-template-columns:minmax(0,max-content)}
+.related-more{display:block;margin-top:10px;color:var(--muted)}
