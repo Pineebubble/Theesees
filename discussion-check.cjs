@@ -1,5 +1,12 @@
 const assert=require('node:assert/strict');
-const {cleanPDFBreaks,conversationTurns}=require('./dist/reading-utils.js');
+const {cleanPDFBreaks,conversationTurns,cleanForTranslation}=require('./dist/reading-utils.js');
+// Text tidied before translating: split words rejoined, compounds kept, lines joined, spacing tidied.
+assert.equal(cleanForTranslation('The transla-\ntion of cultural\nterms is never neutral.'),'The translation of cultural terms is never neutral.');
+assert.equal(cleanForTranslation('It is self-\nevident that'),'It is self-evident that');
+assert.equal(cleanForTranslation('a taken-for-\ngranted assumption'),'a taken-for-granted assumption');
+assert.equal(cleanForTranslation('post-\ncolonial and post-colonial theory'),'post-colonial and post-colonial theory');
+assert.equal(cleanForTranslation('翻译不仅是语言\n之间的转换。'),'翻译不仅是语言之间的转换。');
+assert.equal(cleanForTranslation('Its colours were\nsharpless  and crisp .'),'Its colours were sharpless and crisp.');
 assert.equal(cleanPDFBreaks('Before I address\ncultural globalization,\nI must explain.\n\nAnother paragraph.'),'Before I address cultural globalization, I must explain.\n\nAnother paragraph.');
 assert.equal(cleanPDFBreaks('- one\n- two\n\nParagraph\ncontinued'),'- one\n- two\n\nParagraph continued');
 assert.equal(cleanPDFBreaks('女性\n翻译'),'女性翻译');

@@ -17,6 +17,23 @@ function cleanPDFBreaks(text){
  }
  return result;
 }
+/* Text selected from a PDF, tidied for machine translation: words split across lines are rejoined, lines are
+   joined into sentences, and spacing is tidied. A hyphen at a line end is usually a typesetting break
+   ("transla-|tion"), but sometimes part of a compound ("self-|evident"): the rest of the text decides when it can,
+   otherwise a few common compound prefixes keep their hyphen. */
+const KEEP_HYPHEN=/^(self|non|well|cross|half|so|ill|all|ex|quasi|semi|anti|pro|co)$/i;
+function cleanForTranslation(text){
+ let t=String(text).replace(/\r\n?/g,'\n').replace(/[   ]/g,' ').replace(/­/g,'').replace(/[ \t]+\n/g,'\n');
+ const plain=t.replace(/\s+/g,' ').toLowerCase();
+ t=t.replace(/(\p{L}+)[-‐]\n[ \t]*(\p{Ll}[\p{L}'’]*)/gu,(m,a,b)=>{
+  const joined=(a+b).toLowerCase(),hyphenated=(a+'-'+b).toLowerCase();
+  const seenJoined=plain.split(joined).length>1,seenHyphen=plain.includes(hyphenated+' ')||plain.includes(hyphenated+',')||plain.includes(hyphenated+'.');
+  // The last word of a compound like "taken-for-|granted" keeps its hyphen too.
+  const compound=seenHyphen&&!seenJoined||KEEP_HYPHEN.test(a)||/[-‐]\p{L}+$/u.test(t.slice(0,t.indexOf(m))+a);
+  return compound?`${a}-${b}`:a+b;
+ });
+ return cleanPDFBreaks(t).replace(/[ \t]{2,}/g,' ').replace(/ +([,.;:!?)\]])/g,'$1').trim();
+}
 function conversationTurns(text){
  const turns=[];let current=null,code=false;
  for(const line of String(text).replace(/\r\n?/g,'\n').split('\n')){
@@ -29,4 +46,4 @@ function conversationTurns(text){
  if(current)turns.push(current);
  return turns.filter(t=>t.body.trim()).map(t=>({...t,body:t.body.trim()}));
 }
-if(typeof module!=='undefined')module.exports={cleanPDFBreaks,conversationTurns};
+if(typeof module!=='undefined')module.exports={cleanPDFBreaks,conversationTurns,cleanForTranslation};
