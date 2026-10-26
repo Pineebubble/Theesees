@@ -16,7 +16,8 @@ function trChipEl(){
  if(trChip)return trChip;
  trChip=document.createElement('button');trChip.type='button';trChip.className='translate-chip';trChip.textContent='Translate';trChip.hidden=true;
  trChip.addEventListener('mousedown',e=>e.preventDefault()); // keep the selection while clicking
- trChip.onclick=()=>{trChip.hidden=true;openTranslate(trText);};
+ // PDF line breaks and split words are tidied first (reading-utils.js); translators handle whole sentences better.
+ trChip.onclick=()=>{trChip.hidden=true;openTranslate(typeof cleanForTranslation==='function'?cleanForTranslation(trText):trText);};
  document.body.append(trChip);return trChip;
 }
 // The selected text, if it is on the page itself (not in a form field or dialog).
