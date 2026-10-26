@@ -76,6 +76,7 @@ function pdfLayout(keep=true){
  st.pages.forEach(pg=>st.observer.observe(pg.div));
  if(anchor>1)box.scrollTop=st.pages[anchor-1].div.offsetTop-box.offsetTop-8;
  pdfPageInfo();
+ if(typeof drawPdfBookmark==='function')drawPdfBookmark();
 }
 async function pdfRenderPage(n){
  const st=pdfState,pg=st?.pages?.[n-1];if(!pg||pg.rendered||pg.rendering)return;
