@@ -101,19 +101,32 @@ function pdfReleasePage(n){
  const pg=pdfState?.pages?.[n-1];if(!pg||!pg.rendered)return;
  const c=pg.div.querySelector('canvas');c.width=c.height=0;pg.div.querySelector('.textLayer').innerHTML='';pg.div.querySelector('.pdf-hl').innerHTML='';pg.textDivs=null;pg.rendered=false;
 }
+/* Justified PDF lines store each word as its own text item, so a highlight drawn word by word leaves the stretched
+   spaces between words blank. Boxes on the same line are joined into one strip when the gap between them is
+   word-sized (up to 1.5 line heights); wider gaps, such as between two columns, stay open. */
+function pdfMergeLineBoxes(boxes){
+ const out=[];
+ for(const b of [...boxes].sort((x,y)=>x.t-y.t||x.l-y.l)){
+  const h=b.b-b.t,line=out.find(o=>{const overlap=Math.min(o.b,b.b)-Math.max(o.t,b.t);return overlap>Math.min(o.b-o.t,h)*.5&&b.l-o.r<=1.5*Math.max(o.b-o.t,h)&&o.l-b.r<=1.5*Math.max(o.b-o.t,h);});
+  if(line){line.l=Math.min(line.l,b.l);line.r=Math.max(line.r,b.r);line.t=Math.min(line.t,b.t);line.b=Math.max(line.b,b.b);}
+  else out.push({...b});
+ }
+ return out;
+}
 function pdfDrawHighlights(n){
  const st=pdfState,pg=st?.pages?.[n-1];if(!pg?.rendered||!pg.textDivs)return;
  const layer=pg.div.querySelector('.pdf-hl'),base=pg.div.getBoundingClientRect();layer.innerHTML='';
  for(const [id,m] of st.matches){
   if(m.none)continue;
+  const boxes=[];
   for(const s of m.segs.filter(s=>s.page===n)){
    const node=pg.textDivs[s.item]?.firstChild;if(!node)continue;
    const len=node.textContent.length,r=document.createRange();r.setStart(node,Math.min(s.from,len));r.setEnd(node,Math.min(s.to,len));
-   for(const b of r.getClientRects()){
-    if(b.width<1)continue;
-    const d=document.createElement('div');d.className='pdf-mark'+(id===activePassage?' active':'')+(m.approx?' approx':'');d.dataset.highlight=id;
-    Object.assign(d.style,{left:b.left-base.left+'px',top:b.top-base.top+'px',width:b.width+'px',height:b.height+'px'});layer.append(d);
-   }
+   for(const b of r.getClientRects())if(b.width>=1)boxes.push({l:b.left-base.left,t:b.top-base.top,r:b.right-base.left,b:b.bottom-base.top});
+  }
+  for(const b of pdfMergeLineBoxes(boxes)){
+   const d=document.createElement('div');d.className='pdf-mark'+(id===activePassage?' active':'')+(m.approx?' approx':'');d.dataset.highlight=id;
+   Object.assign(d.style,{left:b.l+'px',top:b.t+'px',width:b.r-b.l+'px',height:b.b-b.t+'px'});layer.append(d);
   }
  }
 }
