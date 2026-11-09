@@ -798,3 +798,14 @@ body.ac-resizing iframe,body.ac-resizing #pdf-pages{pointer-events:none}
 .search-all{margin:2px 8px;font-size:12px}
 .search-none{padding:12px 16px;color:var(--muted)}
 .search-flash{outline:3px solid var(--c-sky);outline-offset:2px;transition:outline-color 1.5s}
+/* Ask Claude: what to include, saving answers, the overview preview */
+.ac-form .ac-include{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:12px;color:var(--muted)}
+.ac-form .ac-include>span{font-weight:500}
+.ac-form .ac-include label{display:flex;flex-direction:row;align-items:center;gap:5px;margin:0;font-size:12px;color:var(--muted);white-space:nowrap;min-width:0}
+.ac-form .ac-include input{width:auto;flex:none;margin:0}
+.ac-form .ac-include .ac-page{max-width:100%}
+.ac-msg-actions{display:flex;gap:6px;align-items:center;margin-top:6px}
+.ac-msg-actions button{font-size:12px;padding:4px 8px}
+.ac-msg-actions span{font-size:12px;color:var(--muted)}
+.ac-preview pre{white-space:pre-wrap;max-height:300px;overflow:auto;font:12px/1.5 var(--mono);background:var(--wash);padding:10px}
+.ask-claude-panel header .actions button{font-size:12px}

@@ -9,7 +9,7 @@ const AC_URL='http://127.0.0.1:8790';
 const AC_PDF_MAX=300000,AC_CONTEXT_MAX=400000;
 const acLoad=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}};
 const acStore=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
-let acKey=acLoad('theesees-bridge-key',''),acChat=acLoad('theesees-chat',[]),acWithPage=acLoad('theesees-chat-page',true);
+let acKey=acLoad('theesees-bridge-key',''),acChat=acLoad('theesees-chat',[]),acWithPage=acLoad('theesees-chat-page',true),acWithOverview=acLoad('theesees-chat-overview',true),acWithLibrary=acLoad('theesees-chat-library',true);
 let acModel=acLoad('theesees-chat-model',''),acWeb=acLoad('theesees-chat-web',true),acAbort=null,acStatus='unknown';
 
 function acMount(){
@@ -17,10 +17,10 @@ function acMount(){
  document.body.insertAdjacentHTML('beforeend',`<button class="ask-claude-open" id="ask-claude-open" aria-controls="ask-claude-panel" aria-expanded="false">Ask Claude</button>
  <aside class="ask-claude-panel" id="ask-claude-panel" aria-label="Ask Claude" hidden>
   <div class="ac-resize" id="ac-resize" role="separator" aria-orientation="vertical" aria-label="Resize the chat panel" tabindex="0" title="Drag to resize · double-click to reset"></div>
-  <header><div><strong>Ask Claude</strong><small id="ac-status">via Claude Code on this computer</small></div><div class="actions"><button id="ac-new" title="Start a new conversation">New chat</button><button id="ac-close" aria-label="Close">×</button></div></header>
+  <header><div><strong>Ask Claude</strong><small id="ac-status">via Claude Code on this computer</small></div><div class="actions"><button id="ac-context" title="Your notes for Claude, and the project overview it receives">What Claude knows</button><button id="ac-new" title="Start a new conversation">New chat</button><button id="ac-close" aria-label="Close">×</button></div></header>
   <div class="ac-body" id="ac-body"></div>
   <form class="ac-form" id="ac-form">
-   <label class="ac-page"><input type="checkbox" id="ac-with-page" ${acWithPage?'checked':''}> Include this page <span id="ac-page-what"></span></label>
+   <div class="ac-include"><span>Include</span><label class="ac-page" title="What you are looking at now"><input type="checkbox" id="ac-with-page" ${acWithPage?'checked':''}> this page <span id="ac-page-what"></span></label><label title="Your research question, notes for Claude, papers, themes, thoughts, outline and recent discussions"><input type="checkbox" id="ac-with-overview" ${acWithOverview?'checked':''}> project overview</label><label title="Passages, PDF pages, comments, thoughts and drafts from all your papers that share words with your question"><input type="checkbox" id="ac-with-library" ${acWithLibrary?'checked':''}> library search</label></div>
    <textarea id="ac-input" rows="3" placeholder="Ask about this paper, a passage, your draft…" aria-label="Message to Claude"></textarea>
    <div class="ac-send-row"><label class="ac-web" title="Let Claude search the web for sources and links. It never touches your files."><input type="checkbox" id="ac-web" ${acWeb?'checked':''}> Web search</label><select id="ac-model" aria-label="Model"><option value="">Default model</option><option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option></select><button type="submit" class="primary" id="ac-send">Send</button></div>
   </form>
@@ -29,6 +29,10 @@ function acMount(){
  $('#ask-claude-open').onclick=()=>acToggle(true);$('#ac-close').onclick=()=>acToggle(false);
  $('#ac-new').onclick=()=>{acAbort?.abort();acChat=[];acStore('theesees-chat',acChat);acRender();$('#ac-input').focus();};
  $('#ac-with-page').onchange=e=>{acWithPage=e.target.checked;acStore('theesees-chat-page',acWithPage);acPageLabel();};
+ $('#ac-with-overview').onchange=e=>{acWithOverview=e.target.checked;acStore('theesees-chat-overview',acWithOverview);};
+ $('#ac-with-library').onchange=e=>{acWithLibrary=e.target.checked;acStore('theesees-chat-library',acWithLibrary);};
+ $('#ac-context').onclick=()=>editAiNotes();
+ $('#ac-body').addEventListener('click',e=>{const s=e.target.closest('[data-ac-save]');if(s)acSaveReply(Number(s.dataset.acSave));const c=e.target.closest('[data-ac-copy]');if(c)navigator.clipboard.writeText(acChat[Number(c.dataset.acCopy)]?.content||'').then(()=>toast('Answer copied.'),()=>toast('Couldn’t copy.'));});
  $('#ac-model').onchange=e=>{acModel=e.target.value;acStore('theesees-chat-model',acModel);};
  $('#ac-web').onchange=e=>{acWeb=e.target.checked;acStore('theesees-chat-web',acWeb);};
  $('#ac-form').onsubmit=e=>{e.preventDefault();acSend();};
@@ -72,7 +76,7 @@ function acRender(){
   $('#ac-key-form').onsubmit=e=>{e.preventDefault();acKey=$('#ac-key').value.trim();acStore('theesees-bridge-key',acKey);acCheck();};
   return;
  }
- body.innerHTML=acChat.length?acChat.map(m=>`<div class="ac-msg ${m.role}">${m.role==='user'?`${m.page?`<small>About: ${esc(m.page)}</small>`:''}<p>${esc(m.content).replace(/\n/g,'<br>')}</p>`:acMarkdown(m.content)||'<p class="ac-typing">Thinking…</p>'}</div>`).join(''):`<div class="ac-empty"><p>Ask anything about what you're looking at. For example:</p><button data-ac-try>Summarise this paper's argument in three points</button><button data-ac-try>Which of my passages support each other?</button><button data-ac-try>Suggest a clearer way to say my last paragraph</button></div>`;
+ body.innerHTML=acChat.length?acChat.map((m,i)=>`<div class="ac-msg ${m.role}">${m.role==='user'?`${m.page?`<small>With: ${esc(m.page)}</small>`:''}<p>${esc(m.content).replace(/\n/g,'<br>')}</p>`:(acMarkdown(m.content)||'<p class="ac-typing">Thinking…</p>')+(m.content&&!(acAbort&&i===acChat.length-1)&&!/^⚠︎/.test(m.content)?`<div class="ac-msg-actions">${m.saved?'<span>Saved ✓</span>':`<button data-ac-save="${i}">Keep this answer</button>`}<button data-ac-copy="${i}">Copy</button></div>`:'')}</div>`).join(''):`<div class="ac-empty"><p>Ask anything about what you're looking at. For example:</p><button data-ac-try>Summarise this paper's argument in three points</button><button data-ac-try>Which of my passages support each other?</button><button data-ac-try>Suggest a clearer way to say my last paragraph</button></div>`;
  body.querySelectorAll('[data-ac-try]').forEach(b=>b.onclick=()=>{$('#ac-input').value=b.textContent;$('#ac-input').focus();});
  body.scrollTop=body.scrollHeight;
 }
@@ -153,10 +157,15 @@ async function acSend(){
  if(acStatus!=='ready'){await acCheck();if(acStatus!=='ready')return;}
  if(acWithPage&&page==='reader'&&pdfState?.indexReady){$('#ac-status').textContent='Reading the PDF…';await pdfState.indexReady;$('#ac-status').textContent='Connected · Claude Code on this computer';}
  const ctx=acWithPage?acPageContext():null;
- acChat.push({role:'user',content:text,page:ctx?.label||''},{role:'assistant',content:''});input.value='';acRender();
+ // Library search: make sure every PDF's text has been read (once; cached afterwards).
+ if(acWithLibrary&&typeof indexAllPdfs==='function'&&data.papers.some(p=>p.pdfName&&!searchPdfText.has(p.id))){$('#ac-status').textContent='Reading your PDFs for library search (first time only)…';await indexAllPdfs();$('#ac-status').textContent='Connected · Claude Code on this computer';}
+ const lib=acWithLibrary&&typeof acLibrary==='function'?acLibrary(text,acWithPage&&page==='reader'?currentPaper:null):null,ov=acWithOverview&&typeof acOverview==='function'?acOverview():'';
+ const context=[ov&&`=== Project overview ===\n${ov}`,lib?.count?`=== From the researcher's library: keyword matches for ${lib.kws.join(', ')} (may be incomplete or partly off-topic) ===\n${lib.text}`:'',ctx?.text&&`=== What the researcher is looking at now ===\n${ctx.text}`].filter(Boolean).join('\n\n');
+ const label=[ctx?.label,ov&&'project overview',lib&&(lib.count?plural(lib.count,'library match','library matches'):'no library matches')].filter(Boolean).join(' · ');
+ acChat.push({role:'user',content:text,page:label},{role:'assistant',content:''});input.value='';acRender();
  const reply=acChat.at(-1);acAbort=new AbortController();$('#ac-send').textContent='Stop';
  try{
-  const r=await fetch(AC_URL+'/chat',{method:'POST',signal:acAbort.signal,headers:{Authorization:'Bearer '+acKey,'Content-Type':'application/json'},body:JSON.stringify({messages:acChat.slice(0,-1).map(({role,content})=>({role,content})),context:ctx?.text||'',model:acModel,web:acWeb})});
+  const r=await fetch(AC_URL+'/chat',{method:'POST',signal:acAbort.signal,headers:{Authorization:'Bearer '+acKey,'Content-Type':'application/json'},body:JSON.stringify({messages:acChat.slice(0,-1).map(({role,content})=>({role,content})),context,model:acModel,web:acWeb})});
   if(!r.ok)throw Error(r.status===409?'Claude is still answering the previous message.':r.status===401?'The bridge key changed. Paste the new one.':`The bridge answered ${r.status}.`);
   const reader=r.body.getReader(),dec=new TextDecoder();
   for(;;){const {done,value}=await reader.read();if(done)break;reply.content+=dec.decode(value,{stream:true});acRender();}
