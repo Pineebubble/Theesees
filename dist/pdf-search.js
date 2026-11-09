@@ -13,8 +13,12 @@ function pdfBindSearch(){
   if(e.key==='Escape'){input.value='';pdfFind('');}
  });
  $('#pdf-find-prev').onclick=()=>pdfFindStep(-1);$('#pdf-find-next').onclick=()=>pdfFindStep(1);
+ // Arriving from Search everything (search.js): look for the same words, starting on the page it was found.
+ // The viewer binds this box before the new PDF is loaded, so wait until this paper's PDF is the one in the viewer.
+ if(typeof searchPendingPdf!=='undefined'&&searchPendingPdf){const {q,page}=searchPendingPdf,paper=currentPaper;searchPendingPdf=null;input.value=q;let tries=0;
+  const go=()=>{if(pdfState?.paperId===paper&&pdfState.indexReady)pdfFind(q,page);else if(tries++<80&&currentPaper===paper)setTimeout(go,150);};go();}
 }
-async function pdfFind(raw){
+async function pdfFind(raw,startPage=null){
  const st=pdfState;if(!st)return;
  const q=normalizeQuote(raw);
  if(q.length<2){st.find=null;pdfFindCount();pdfFindRedraw();return;}
@@ -22,7 +26,7 @@ async function pdfFind(raw){
  await st.indexReady;if(pdfState!==st)return;
  const hits=occurrences(st.index.text,q,2000).map(start=>({start,end:start+q.length,page:st.index.page[start]}));
  // Start from the first hit at or after the page you are on.
- const here=typeof pdfCurrentPage==='function'?pdfCurrentPage():1,first=Math.max(0,hits.findIndex(h=>h.page>=here));
+ const here=startPage||(typeof pdfCurrentPage==='function'?pdfCurrentPage():1),first=Math.max(0,hits.findIndex(h=>h.page>=here));
  st.find={raw,q,hits,cur:hits.length?first:-1};
  pdfFindCount();pdfFindRedraw();if(hits.length)pdfFindShow();
 }
@@ -54,7 +58,7 @@ function pdfDrawFind(n,pg,layer,base){
 // Scroll the current hit into the middle of the viewer.
 async function pdfFindShow(){
  const st=pdfState,f=st?.find,h=f?.hits[f.cur],box=$('#pdf-pages');if(!h||!box)return;
- const pg=st.pages[h.page-1];if(!pg)return;
+ const pg=st.pages?.[h.page-1];if(!pg){if((pdfFindShow.tries=(pdfFindShow.tries||0)+1)<20)setTimeout(pdfFindShow,250);return;}pdfFindShow.tries=0;
  box.scrollTop=pg.div.offsetTop-box.offsetTop-8;
  await pdfRenderPage(h.page);if(pdfState!==st)return;pdfDrawHighlights(h.page);
  const mark=pg.div.querySelector('.pdf-find-hit.current');

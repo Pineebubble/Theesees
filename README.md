@@ -57,6 +57,7 @@ This repository contains application code and design assets, not personal papers
 - **Add several papers** at once from PDFs and/or pasted DOIs. Title, authors and DOI are read from each PDF (its own title/author fields, the largest text on page 1, DOIs in the first pages) and, optionally, completed online from **Crossref**, plus **OpenAlex** if you save a free OpenAlex API key (better for books and non-English work). Only DOIs, or titles with the first author's surname when a PDF has no DOI, are sent; PDFs stay in the browser. A title search fills details in only on a near-certain match; otherwise it offers up to three possible matches to pick from, and each row has **Find online** to search again after correcting the title or author. Everything is shown for review first, and papers already in the library are flagged.
 - Literature is grouped by each paper's first theme, in theme-map order.
 - **Related literature** on a paper lists up to four papers that share the most themes with it, each once, with links to the theme folders for the rest.
+- **Search everything** (Search in the top bar, ⌘K / Ctrl+K, or /): papers, the text inside every PDF and pasted source, passages, discussions (titles, notes, comments, imported chats), thoughts and your writing. Case and accents are ignored, several words must all appear, and "quoted words" must appear together. Results are grouped by kind with the match highlighted; ↑/↓ and Enter open one where it was found (a PDF opens on the matching page with the words highlighted; a comment is scrolled into view). Each PDF's text is read once and kept in browser storage, so later searches are instant.
 - **Search in a PDF**: a search box under the PDF viewer's controls (or ⌘F / Ctrl+F) finds words anywhere in the PDF, ignoring case, line breaks and hyphenation. Every hit is tinted, the current one is stronger, and ↑/↓ (or Enter / Shift+Enter) step through them. Scanned PDFs without selectable text can't be searched.
 - **Reading bookmark**: **Bookmark here** marks where you stopped in a PDF (page and spot, unaffected by zoom) or in pasted text. A marker shows it, **Go to bookmark** returns to it, and reopening the paper jumps back to it.
 - Theme colours carry through: thoughts, outline cards, saved passages and discussion quotes are edged in the colour of their (first) theme.
@@ -95,6 +96,7 @@ node scripts-check.cjs
 node lit-check.cjs
 node draft-check.cjs
 node backup-check.cjs
+node search-check.cjs
 ```
 
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
