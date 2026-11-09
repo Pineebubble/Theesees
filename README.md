@@ -66,6 +66,18 @@ This repository contains application code and design assets, not personal papers
 
 No live AI calls (the optional Crossref/OpenAlex lookups are the only network requests), automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
 
+## Ask Claude (side chat)
+
+**Ask Claude** (bottom right, on every page) opens a chat panel. With **Include this page** on, your message carries what you are looking at: the paper with the whole PDF's text (marked with page numbers; very long PDFs are cut off at about 300,000 characters), all its saved passages and its discussions, a thought and its evidence, the section you're writing, a discussion, or your literature list, plus any text you've selected.
+
+It runs through Claude Code on your own computer, using your Claude login, so there is no API key or extra cost:
+
+1. Install [Claude Code](https://claude.com/claude-code) and sign in once (run `claude` in Terminal).
+2. In this folder, run `node claude-bridge.mjs` and keep that window open while you chat (Ctrl+C stops it).
+3. Open **Ask Claude** and paste the key it prints (once per browser). In Chrome, allow access to this computer if asked.
+
+`claude-bridge.mjs` listens on this computer only (127.0.0.1:8790), answers only the Theesees website and local copies on port 8765 (add another with `THEESEES_BRIDGE_ORIGIN=…`), and only requests carrying its key, stored in `~/.config/theesees/bridge-key` (`--new-key` makes a new one). Claude runs with its tools switched off (no commands, no reading or changing files, no opening web pages), no MCP servers and in an empty folder. The one exception is **Web search** (a switch in the panel, on by default), which returns search results and links for finding sources and never touches this computer; links in replies open in a new tab. Each message's size (not its text) is printed in the bridge's window. Messages and page context go to Anthropic through Claude Code, as when you use Claude directly. Conversations are kept in this browser only. Works in Chrome; other browsers may block a website from reaching your computer.
+
 ## Developer checks
 
 With Node.js installed, run from the repository root:
