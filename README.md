@@ -68,7 +68,7 @@ No live AI calls (the optional Crossref/OpenAlex lookups are the only network re
 
 ## Ask Claude (side chat)
 
-**Ask Claude** (bottom right, on every page) opens a chat panel. With **Include this page** on, your message carries what you are looking at: the paper with the whole PDF's text (marked with page numbers; very long PDFs are cut off at about 300,000 characters), all its saved passages and its discussions, a thought and its evidence, the section you're writing, a discussion, or your literature list, plus any text you've selected.
+**Ask Claude** (bottom right, on every page) opens a chat panel; drag its left edge to resize it (double-click the edge to reset). With **Include this page** on, your message carries what you are looking at: the paper with the whole PDF's text (marked with page numbers; very long PDFs are cut off at about 300,000 characters), all its saved passages and its discussions, a thought and its evidence, the section you're writing, a discussion, or your literature list, plus any text you've selected.
 
 It runs through Claude Code on your own computer, using your Claude login, so there is no API key or extra cost:
 

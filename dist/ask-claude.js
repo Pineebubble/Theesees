@@ -16,6 +16,7 @@ function acMount(){
  if($('#ask-claude-panel'))return;
  document.body.insertAdjacentHTML('beforeend',`<button class="ask-claude-open" id="ask-claude-open" aria-controls="ask-claude-panel" aria-expanded="false">Ask Claude</button>
  <aside class="ask-claude-panel" id="ask-claude-panel" aria-label="Ask Claude" hidden>
+  <div class="ac-resize" id="ac-resize" role="separator" aria-orientation="vertical" aria-label="Resize the chat panel" tabindex="0" title="Drag to resize · double-click to reset"></div>
   <header><div><strong>Ask Claude</strong><small id="ac-status">via Claude Code on this computer</small></div><div class="actions"><button id="ac-new" title="Start a new conversation">New chat</button><button id="ac-close" aria-label="Close">×</button></div></header>
   <div class="ac-body" id="ac-body"></div>
   <form class="ac-form" id="ac-form">
@@ -24,7 +25,7 @@ function acMount(){
    <div class="ac-send-row"><label class="ac-web" title="Let Claude search the web for sources and links. It never touches your files."><input type="checkbox" id="ac-web" ${acWeb?'checked':''}> Web search</label><select id="ac-model" aria-label="Model"><option value="">Default model</option><option value="sonnet">Sonnet</option><option value="opus">Opus</option><option value="haiku">Haiku</option></select><button type="submit" class="primary" id="ac-send">Send</button></div>
   </form>
  </aside>`);
- $('#ac-model').value=acModel;
+ $('#ac-model').value=acModel;acSetWidth(acLoad('theesees-chat-width',AC_W));acBindResize();
  $('#ask-claude-open').onclick=()=>acToggle(true);$('#ac-close').onclick=()=>acToggle(false);
  $('#ac-new').onclick=()=>{acAbort?.abort();acChat=[];acStore('theesees-chat',acChat);acRender();$('#ac-input').focus();};
  $('#ac-with-page').onchange=e=>{acWithPage=e.target.checked;acStore('theesees-chat-page',acWithPage);acPageLabel();};
@@ -33,6 +34,23 @@ function acMount(){
  $('#ac-form').onsubmit=e=>{e.preventDefault();acSend();};
  $('#ac-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();acSend();}});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#ask-claude-panel').hidden&&!$('#modal')?.open)acToggle(false);});
+}
+/* Resizing: drag the panel's left edge (or focus it and use ← →); double-click puts it back to the default.
+   The width is remembered on this browser; on wide screens the page makes room for the panel. */
+const AC_W=400;
+function acSetWidth(w){
+ const max=Math.max(320,innerWidth-360),width=Math.round(Math.min(max,Math.max(300,Number(w)||AC_W)));
+ document.documentElement.style.setProperty('--ac-w',width+'px');$('#ac-resize')?.setAttribute('aria-valuenow',String(width));return width;
+}
+function acBindResize(){
+ const h=$('#ac-resize');let dragging=false;
+ h.addEventListener('pointerdown',e=>{if(e.button!==0)return;dragging=true;h.setPointerCapture(e.pointerId);document.body.classList.add('ac-resizing');e.preventDefault();});
+ h.addEventListener('pointermove',e=>{if(dragging)acSetWidth(innerWidth-e.clientX);});
+ const end=()=>{if(!dragging)return;dragging=false;document.body.classList.remove('ac-resizing');acStore('theesees-chat-width',parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ac-w')));};
+ h.addEventListener('pointerup',end);h.addEventListener('pointercancel',end);
+ h.addEventListener('dblclick',()=>acStore('theesees-chat-width',acSetWidth(AC_W)));
+ h.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();const now=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ac-w'))||AC_W;acStore('theesees-chat-width',acSetWidth(now+(e.key==='ArrowLeft'?40:-40)));});
+ addEventListener('resize',()=>acSetWidth(acLoad('theesees-chat-width',AC_W)));
 }
 function acToggle(open){
  const panel=$('#ask-claude-panel');panel.hidden=!open;document.body.classList.toggle('ask-claude-on',open);

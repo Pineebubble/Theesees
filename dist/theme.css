@@ -717,9 +717,16 @@ dialog.lightbox::backdrop{background:#1b1b19d9}
 .ask-claude-open{position:fixed;right:18px;bottom:18px;z-index:800;padding:10px 16px;border:0;border-radius:0;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);cursor:pointer}
 .ask-claude-open:hover{background:#3b3b38;color:#fff}
 body.ask-claude-on .ask-claude-open{display:none}
-.ask-claude-panel{position:fixed;top:0;right:0;bottom:0;z-index:850;width:min(400px,100vw);display:flex;flex-direction:column;background:#fff;border-left:1px solid var(--line)}
+.ask-claude-panel{position:fixed;top:0;right:0;bottom:0;z-index:850;width:min(var(--ac-w,400px),100vw);display:flex;flex-direction:column;background:#fff;border-left:1px solid var(--line)}
 .ask-claude-panel[hidden]{display:none}
-@media(min-width:1100px){body.ask-claude-on .app{margin-right:400px}}
+@media(min-width:1100px){body.ask-claude-on .app{margin-right:var(--ac-w,400px)}}
+/* The left edge is a handle: drag to resize */
+.ac-resize{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:2;touch-action:none}
+.ac-resize::after{content:'';position:absolute;left:3px;top:0;bottom:0;width:2px;background:transparent;transition:background .15s}
+.ac-resize:hover::after,.ac-resize:focus-visible::after,body.ac-resizing .ac-resize::after{background:var(--ink)}
+.ac-resize:focus-visible{outline:none}
+body.ac-resizing{cursor:col-resize;user-select:none}
+body.ac-resizing iframe,body.ac-resizing #pdf-pages{pointer-events:none}
 .ask-claude-panel header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:16px 16px 12px;border-bottom:1px solid var(--line)}
 .ask-claude-panel header strong{display:block;font:600 16px/1.2 var(--display)}
 .ask-claude-panel header small{font-size:12px;color:var(--muted)}
