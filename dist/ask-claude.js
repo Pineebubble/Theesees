@@ -62,12 +62,25 @@ function acRender(){
 function acMarkdown(s){
  // Links: only http(s), opened in a new tab without access back to this page.
  const inline=t=>esc(t).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>').replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,'$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
- return String(s).trim().split(/\n{2,}/).map(block=>{
-  const lines=block.split('\n');
-  if(lines.every(l=>/^\s*([-*•]|\d+[.)])\s+/.test(l))){const ol=/^\s*\d/.test(lines[0]);return `<${ol?'ol':'ul'}>${lines.map(l=>`<li>${inline(l.replace(/^\s*([-*•]|\d+[.)])\s+/,''))}</li>`).join('')}</${ol?'ol':'ul'}>`;}
-  if(/^#{1,4}\s/.test(block))return `<p><strong>${inline(block.replace(/^#{1,4}\s+/,''))}</strong></p>`;
-  return `<p>${lines.map(inline).join('<br>')}</p>`;
- }).join('');
+ // Line by line, so a heading never swallows the list under it.
+ const out=[];let para=[],list=null;
+ const flushPara=()=>{if(para.length){out.push(`<p>${para.map(inline).join('<br>')}</p>`);para=[];}};
+ const flushList=()=>{if(list){out.push(`<${list.tag}${list.start>1?` start="${list.start}"`:''}>${list.items.map(x=>`<li>${inline(x)}</li>`).join('')}</${list.tag}>`);list=null;}};
+ for(const line of String(s).trim().split('\n')){
+  if(!line.trim()){flushPara();flushList();continue;}
+  const h=line.match(/^\s*#{1,6}\s+(.*)$/),rule=/^\s*([-*_])(\s*\1){2,}\s*$/.test(line),item=line.match(/^\s*([-*•+]|(\d+)[.)])\s+(.*)$/);
+  if(h){flushPara();flushList();out.push(`<p class="ac-h"><strong>${inline(h[1].replace(/^\*\*(.*)\*\*$/,'$1'))}</strong></p>`);continue;}
+  if(rule){flushPara();flushList();out.push('<hr>');continue;}
+  if(item){
+   flushPara();const tag=item[2]?'ol':'ul';
+   if(list&&list.tag!==tag)flushList();
+   list||={tag,items:[],start:Number(item[2]||1)};list.items.push(item[3]);continue;
+  }
+  if(list&&/^\s{2,}\S/.test(line)){list.items[list.items.length-1]+=' '+line.trim();continue;} // a wrapped list item
+  flushList();para.push(line);
+ }
+ flushPara();flushList();
+ return out.join('');
 }
 /* What "Include this page" sends: a short label for the panel, and the text for Claude. */
 function acPageContext(){
