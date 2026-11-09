@@ -7,3 +7,5 @@ node_modules/
 theesees-reading-records*.json
 backups/
 personal-data/
+theesees-backup*.zip
+theesees-before-restore*.zip

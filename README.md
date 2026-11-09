@@ -32,10 +32,11 @@ This repository contains application code and design assets, not personal papers
 
 - Records, pasted text, passages, conversations, replies, and key thoughts use browser localStorage.
 - Attached PDFs use browser IndexedDB.
-- **Export records** downloads JSON records but **does not include PDFs or pictures in comments**. Keep original PDFs separately.
-- **Backup import is not implemented yet.** The JSON export is a safeguard, not a one-click migration feature. Do not clear the original browser or discard its files before migration has been implemented and verified.
+- Attached pictures in comments also use IndexedDB. Theesees asks the browser to keep this storage permanently; clearing this site's browsing data still deletes it.
+- **Backup & restore** (top right) downloads one .zip with everything in this browser: records, every attached PDF (named after its paper) and the pictures in comments. You can open it like any ZIP. **Restore** shows what a backup contains next to what's in the browser now, then replaces the browser's contents, first downloading a safety backup of them. Older records-only .json exports can be restored too (PDFs and pictures already in the browser are kept). This is also how to move your workspace to another computer or browser.
+- A reminder ("Not backed up yet" / "Back up · last 9 days ago") appears in the overview line when you have unsaved changes and no backup in the last 7 days. Keep backups somewhere safe, such as a cloud drive.
 - There is no cloud sync. GitHub does not synchronize research data.
-- Do not commit exported research, private conversations, or PDFs to this public repository.
+- Do not commit exported research, backups, private conversations, or PDFs to this public repository (`.gitignore` already excludes backups, JSON exports and PDFs).
 
 ## Features
 
@@ -93,6 +94,7 @@ node pdf-check.cjs
 node scripts-check.cjs
 node lit-check.cjs
 node draft-check.cjs
+node backup-check.cjs
 ```
 
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.
