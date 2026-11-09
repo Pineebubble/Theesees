@@ -72,6 +72,13 @@ No live AI calls (the optional Crossref/OpenAlex lookups are the only network re
 
 **Ask Claude** (bottom right, on every page) opens a chat panel; drag its left edge to resize it (double-click the edge to reset). With **Include this page** on, your message carries what you are looking at: the paper with the whole PDF's text (marked with page numbers; very long PDFs are cut off at about 300,000 characters), all its saved passages and its discussions, a thought and its evidence, the section you're writing, a discussion, or your literature list, plus any text you've selected.
 
+Two more switches give Claude the bigger picture:
+
+- **Project overview** (sent with every message): your research question (from the About card), your **notes for Claude** (the *What Claude knows* button; saved with your records), progress, themes, papers with status and relevance notes, thoughts with their evidence counts, the outline with word counts, and recent discussions. Titles and notes only, so it stays small; *What Claude knows* shows exactly what is sent.
+- **Library search** (per question): the passages, PDF pages, source texts, comments, thoughts and draft paragraphs from all your papers that share words with your question (rarer words count for more), numbered with their sources. It is keyword-based, so use the words your sources use.
+
+**Keep this answer** saves a reply (and your question) as a discussion, new or existing, so it shows up in search and Claude sees it next time; it can also become a thought.
+
 It runs through Claude Code on your own computer, using your Claude login, so there is no API key or extra cost:
 
 1. Install [Claude Code](https://claude.com/claude-code) and sign in once (run `claude` in Terminal).
@@ -97,6 +104,7 @@ node lit-check.cjs
 node draft-check.cjs
 node backup-check.cjs
 node search-check.cjs
+node ask-check.cjs
 ```
 
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.

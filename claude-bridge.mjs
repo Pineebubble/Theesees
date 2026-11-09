@@ -32,6 +32,7 @@ const keyOk=h=>{const got=Buffer.from(String(h||'').replace(/^Bearer\s+/i,'')),w
 
 const SYSTEM=`You are the research assistant built into Theesees, a literature-review workspace used by a thesis researcher in translation studies and intercultural communication.
 - Help them read, compare and think about their literature, and write and revise their own text.
+- The context can have up to three parts: a project overview (their research question, notes for you, papers, themes, thoughts, outline and progress), material found in their library by keyword search (numbered, with sources; it may miss things or include off-topic bits), and what they are looking at now. Connect your answer to their own thoughts, passages and draft where relevant, and cite library items by their source.
 - Base claims about their papers only on the context they share. Never invent quotations, page numbers or references; say when the context doesn't contain something.
 - Be concise and plain. Use short paragraphs or bullet points; quote briefly with page numbers when the context has them.
 - Reply in the language the user writes in unless asked otherwise.
@@ -66,7 +67,7 @@ const server=http.createServer((req,res)=>{
   if(busy){res.writeHead(409,{'Content-Type':'text/plain'}).end('Claude is still answering the previous message.');return;}
   // One line per message, so you can see what the page sent (sizes only, never the text).
   const ctx=String(input.context||''),pdfPages=(ctx.match(/^\[p\. [^\]]+\]$/gm)||[]).length,passages=(ctx.match(/^All (\d+) passages/m)||[])[1],discussions=(ctx.match(/^• “/gm)||[]).length;
-  console.log(`${new Date().toLocaleTimeString()}  message received · ${(input.messages||[]).length} turns${input.web?' · web search on':''} · page context ${ctx.length.toLocaleString()} characters${pdfPages?` · ${pdfPages} PDF pages`:''}${passages?` · ${passages} passages`:''}${discussions?` · ${discussions} discussions`:''}`);
+  console.log(`${new Date().toLocaleTimeString()}  message received · ${(input.messages||[]).length} turns${input.web?' · web search on':''} · page context ${ctx.length.toLocaleString()} characters${pdfPages?` · ${pdfPages} PDF pages`:''}${passages?` · ${passages} passages`:''}${discussions?` · ${discussions} discussions`:''}${/^=== Project overview ===$/m.test(ctx)?' · project overview':''}${(ctx.match(/^\[\d+\] /gm)||[]).length?` · ${(ctx.match(/^\[\d+\] /gm)||[]).length} library matches`:''}`);
   const dir=mkdtempSync(join(tmpdir(),'theesees-chat-'));
   const tools=input.web?'WebSearch':'';
   const args=['-p','--tools',tools,...(tools?['--allowedTools',tools]:[]),'--strict-mcp-config','--no-session-persistence','--disable-slash-commands','--system-prompt',SYSTEM,'--output-format','stream-json','--include-partial-messages','--verbose'];
