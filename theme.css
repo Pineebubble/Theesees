@@ -751,3 +751,5 @@ body.ask-claude-on .ask-claude-open{display:none}
 .ac-form .ac-web{display:flex;flex-direction:row;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--muted);white-space:nowrap}
 .ac-form .ac-web input{width:auto;flex:none;margin:0}
 .ac-msg a{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-word}
+.ac-msg .ac-h{margin:12px 0 4px}.ac-msg .ac-h:first-child{margin-top:0}
+.ac-msg hr{border:0;border-top:1px solid var(--line);margin:10px 0}
