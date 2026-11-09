@@ -1,7 +1,7 @@
 'use strict';
 const pasteOptions=new WeakMap();
 function setupPasteCleanup(field){
- if(pasteOptions.has(field)||field.readOnly||field.name==='transcript'||field.id==='chat-text')return;
+ if(pasteOptions.has(field)||field.readOnly||field.name==='transcript'||field.id==='chat-text'||field.closest('.ask-claude-panel'))return;
  const bar=document.createElement('div');bar.className='paste-options';
  bar.innerHTML='<label><input type="checkbox" checked> Clean PDF line breaks on paste</label><button type="button">Clean existing text</button><button type="button" hidden>Undo cleanup</button><small role="status"></small>';
  (field.closest('label')||field).insertAdjacentElement('afterend',bar);
