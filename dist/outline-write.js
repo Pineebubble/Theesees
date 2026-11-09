@@ -18,7 +18,7 @@ function renderOutlineWrite(){
  if(!part){$('#main').innerHTML=heading+empty('No sections yet','Add a section to start writing. Subsections and thoughts can be added any time.');$('#add-chapter').onclick=()=>editPart();return;}
  const cs=part.claimIds.map(getClaim).filter(c=>c&&c.status!=='Abandoned');
  $('#main').innerHTML=heading+`<div class="write-layout">
-  <nav class="write-nav" aria-label="Sections and subsections"><div class="write-total">${plural(total,'word')} in total</div>${parts.map((p,i)=>`<button class="write-part level-${p.level}${p.id===part.id?' active':''}" data-write-part="${esc(p.id)}" aria-current="${p.id===part.id}"><span>${nums[p.id]} ${esc(p.title)}</span><small>${(p.level===1?chapterWords(i):partWords(p)).toLocaleString()}</small></button>`).join('')}</nav>
+  <nav class="write-nav" aria-label="Sections and subsections"><div class="write-total">${plural(total,'word')} in total</div>${parts.map((p,i)=>`<div class="write-part-row level-${p.level}" draggable="true" data-drag-part="${esc(p.id)}" title="Drag to reorder"><button class="write-part level-${p.level}${p.id===part.id?' active':''}" data-write-part="${esc(p.id)}" aria-current="${p.id===part.id}"><span>${nums[p.id]} ${esc(p.title)}</span><small>${(p.level===1?chapterWords(i):partWords(p)).toLocaleString()}</small></button><button class="write-part-del" data-delete-part="${esc(p.id)}" aria-label="Remove ${esc(p.title)}" title="Remove ${p.level===1?'section':'subsection'}">×</button></div>`).join('')}${parts.length>1?'<p class="write-nav-hint">Drag to reorder</p>':''}</nav>
   <section class="write-main"><div class="write-head"><small>${part.level===1?'Section':'Subsection'} ${nums[part.id]}</small><h2>${esc(part.title)}</h2>${part.note?`<p class="write-note">${esc(part.note)}</p>`:''}</div>
    <div class="write-tools" role="toolbar" aria-label="Formatting"><button type="button" data-wfmt="bold" title="Bold (⌘B)" aria-label="Bold"><b>B</b></button><button type="button" data-wfmt="italic" title="Italic (⌘I)" aria-label="Italic"><i>I</i></button><button type="button" data-wcase title="Change case: Sentence → Title → UPPER → lower" aria-label="Change case">Aa</button><span class="write-status" id="write-status" role="status">${plural(partWords(part),'word')} · saved</span></div>
    <div class="write-editor" id="write-editor" data-part="${esc(part.id)}" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Draft of ${esc(part.title)}" data-placeholder="Start writing this ${part.level===1?'section':'subsection'}… Use the thoughts on the right: Insert adds a thought with its citation, Cite adds a citation where your cursor is.">${sanitizeDraft(part.draft||'')}</div></section>
@@ -27,7 +27,34 @@ function renderOutlineWrite(){
    <h3>Cite a paper</h3><div class="write-cite-paper"><select id="write-paper" aria-label="Paper to cite"><option value="">Choose a paper…</option>${alpha(data.papers).map(p=>`<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('')}</select><button id="write-paper-go">Cite</button></div></aside>
  </div>`;
  $('#add-chapter').onclick=()=>editPart();$('#export-text').onclick=exportWriting;
- bindWriteEditor(part);
+ bindWriteEditor(part);bindWriteNavDrag();
+}
+/* Reorder in the sidebar by dragging. A section moves with its subsections; a subsection can move into another
+   section (dropped just after a section's title, it becomes that section's first subsection). */
+function dropPart(dragId,targetId,after){
+ const parts=outlineParts(),drag=getPart(dragId),target=getPart(targetId);if(!drag||!target||drag===target)return false;
+ return commitOutline(()=>{
+  const i=parts.indexOf(drag),[start,end]=drag.level===1?chapterBlock(i):[i,i+1],t=parts.indexOf(target);
+  if(t>=start&&t<end)return; // a section onto one of its own subsections
+  const block=parts.splice(start,end-start);let j=parts.indexOf(target);
+  if(drag.level===1){while(j>0&&parts[j].level===2)j--;if(after)j=chapterBlock(j)[1];}
+  else if(after)j++;
+  if(drag.level===2&&j===0)j=start; // a subsection cannot come before the first section: put it back
+  parts.splice(j,0,...block);
+ });
+}
+function bindWriteNavDrag(){
+ const nav=$('.write-nav');if(!nav)return;let dragId=null;
+ const clear=()=>nav.querySelectorAll('.drop-before,.drop-after').forEach(r=>r.classList.remove('drop-before','drop-after'));
+ nav.addEventListener('dragstart',e=>{const r=e.target.closest('[data-drag-part]');if(!r)return;dragId=r.dataset.dragPart;r.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragId);});
+ nav.addEventListener('dragend',()=>{dragId=null;clear();nav.querySelector('.dragging')?.classList.remove('dragging');});
+ nav.addEventListener('dragover',e=>{const r=e.target.closest('[data-drag-part]');if(!dragId||!r)return;e.preventDefault();e.dataTransfer.dropEffect='move';clear();const b=r.getBoundingClientRect();r.classList.add(e.clientY>b.top+b.height/2?'drop-after':'drop-before');});
+ nav.addEventListener('dragleave',e=>{if(!nav.contains(e.relatedTarget))clear();});
+ nav.addEventListener('drop',e=>{
+  const r=e.target.closest('[data-drag-part]');if(!dragId||!r)return;e.preventDefault();
+  const b=r.getBoundingClientRect(),after=e.clientY>b.top+b.height/2,id=dragId;dragId=null;clear();
+  if(dropPart(id,r.dataset.dragPart,after))renderOutline();
+ });
 }
 function bindWriteEditor(part){
  const ed=$('#write-editor');

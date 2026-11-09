@@ -1,5 +1,5 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const c=vm.createContext({console,structuredClone,Date,Map,document:{addEventListener(){}}});
+const c=vm.createContext({console,structuredClone,Date,Map,document:{addEventListener(){}},addEventListener(){}});
 vm.runInContext(`let saved=true,formHandler,page='',lastModal='';let data={keywords:[],papers:[{id:'p',title:'Audience commodity',author:'Dallas Smythe',year:'1977',doi:'10.1/x',keywords:[]},{id:'q',title:'Free labour',author:'Tiziana Terranova, Jane Doe, Ann Lee',year:'2000',keywords:[]},{id:'u',title:'Uncited',author:'Nobody',year:'1999',keywords:[]}],passages:[{id:'h',paperId:'p',quote:'Attention is\\na commodity.',location:'p. 3'},{id:'h2',paperId:'q',quote:'Free labour is unwaged.',location:'p. 33'}],threads:[],trash:[],claims:[]};
 const uid=(()=>{let n=0;return()=>'x'+(++n);})();const esc=s=>String(s??'').replace(/</g,'&lt;');const colors=['#fff'];
 const getPaper=id=>data.papers.find(p=>p.id===id),getKeyword=id=>data.keywords.find(k=>k.id===id);
@@ -8,6 +8,7 @@ const plural=(n,w)=>n+' '+w+(n===1?'':'s');const render=()=>{};const navigate=v=
 vm.runInContext(fs.readFileSync(__dirname+'/dist/claims.js','utf8'),c);
 vm.runInContext(fs.readFileSync(__dirname+'/dist/draft.js','utf8'),c);
 vm.runInContext(fs.readFileSync(__dirname+'/dist/outline.js','utf8'),c);
+vm.runInContext(fs.readFileSync(__dirname+'/dist/outline-write.js','utf8'),c);
 const run=s=>vm.runInContext(s,c);
 run(`renderOutline=()=>{};renderClaim=()=>{};
 const form=o=>({get:k=>o[k]??'',getAll:()=>[]});
@@ -38,6 +39,13 @@ run(`movePart(ch2,1);`);assert.equal(titles(),'Chapter one|Section A|Section B|C
 run(`movePart(s2,1);`);assert.equal(titles(),'Chapter one|Section A|Chapter two|Section B');
 assert.equal(run('chapterOf(getPart(s2)).title'),'Chapter two');
 run(`movePart(s2,-1);movePart(s1,-1);`);assert.equal(titles(),'Chapter one|Section A|Section B|Chapter two');
+// Dragging in Write mode: sections carry their subsections; subsections can change section but never come first.
+run(`dropPart(ch2,ch1,false);`);assert.equal(titles(),'Chapter two|Chapter one|Section A|Section B');
+run(`dropPart(ch2,s2,true);`);assert.equal(titles(),'Chapter one|Section A|Section B|Chapter two');
+run(`dropPart(s1,ch2,true);`);assert.equal(titles(),'Chapter one|Section B|Chapter two|Section A');
+run(`dropPart(s2,ch1,false);`);assert.equal(titles(),'Chapter one|Section B|Chapter two|Section A');
+run(`dropPart(ch1,s2,true);`);assert.equal(titles(),'Chapter one|Section B|Chapter two|Section A');
+run(`dropPart(s1,s2,false);`);assert.equal(titles(),'Chapter one|Section A|Section B|Chapter two');
 
 // Markdown: numbered headings, citations, quotes on one line, abandoned thoughts and uncited papers left out.
 const md=run('outlineMarkdown()');
@@ -73,4 +81,4 @@ assert.doesNotMatch(run('outlineMarkdown({drafts:false})'),/Fluency/);
 // Removing a part that has writing sends it to Trash, where it can be restored.
 run(`data.trash=[];deletePart('w1');formHandler();`);
 assert.equal(run('data.outline.parts.length'),0);assert.equal(run('data.trash[0].type'),'outline');assert.equal(run('data.trash[0].parts[0].draft.includes("Fluency")'),true);
-console.log('PASS: chapters/sections, numbering, placement and order, chapter/section moves, Markdown headings, citations, references, export options, trashed thoughts, removal unplaces, save rollback, written text in export and references, parts with writing go to Trash.');
+console.log('PASS: chapters/sections, numbering, placement and order, chapter/section moves, drag reordering, Markdown headings, citations, references, export options, trashed thoughts, removal unplaces, save rollback, written text in export and references, parts with writing go to Trash.');
