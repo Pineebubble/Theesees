@@ -694,3 +694,9 @@ dialog.lightbox::backdrop{background:#1b1b19d9}
 .reading-bookmark-text{display:inline-block;width:0;height:1em;position:relative;vertical-align:-.1em}
 .reading-bookmark-text::before{content:'';position:absolute;left:-2px;top:-.15em;width:4px;height:1.3em;background:var(--c-coral)}
 .reading-bookmark-text::after{content:'Bookmark';position:absolute;left:-2px;bottom:calc(100% + .2em);padding:2px 6px;background:var(--c-coral);color:#fff;font:500 11px/1.2 var(--sans);white-space:nowrap}
+/* Search in the PDF: a box in the viewer toolbar; hits tinted, the current one stronger */
+.pdf-find{display:flex;align-items:center;gap:4px;flex-basis:100%}
+.pdf-find input{flex:1;min-width:0;max-width:340px;font-size:13px;padding:6px 10px}
+#pdf-find-count{font-size:12px;color:var(--muted);min-width:76px;text-align:right;margin-right:4px}
+.pdf-find-hit{position:absolute;background:#bfe0f6}
+.pdf-find-hit.current{background:var(--c-sky);box-shadow:0 0 0 2px var(--c-sky)}
