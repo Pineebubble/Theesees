@@ -760,3 +760,17 @@ body.ac-resizing iframe,body.ac-resizing #pdf-pages{pointer-events:none}
 .ac-msg a{color:inherit;text-decoration:underline;text-underline-offset:2px;word-break:break-word}
 .ac-msg .ac-h{margin:12px 0 4px}.ac-msg .ac-h:first-child{margin-top:0}
 .ac-msg hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+/* Backup & restore dialog */
+.backup-panel section{padding:14px 0;border-top:1px solid var(--line)}
+.backup-panel section:first-child{border-top:0;padding-top:0}
+.backup-panel h3{margin:0 0 6px;font:600 15px/1.3 var(--display)}
+.backup-panel p{margin:0 0 8px;line-height:1.55}
+.backup-panel .actions{justify-content:flex-start}
+.backup-file{display:block;margin:6px 0}
+.backup-status p{font-size:13px;color:var(--muted)}
+.restore-table{border-collapse:collapse;margin:8px 0 10px;font-size:13px;width:100%}
+.restore-table th,.restore-table td{text-align:left;padding:5px 10px 5px 0;border-bottom:1px solid var(--line);font-weight:400}
+.restore-table thead th{color:var(--muted);font-size:12px}
+.restore-table tbody th{font-weight:500}
+.restore-warning{font-size:13px}
+.restore-error{color:var(--danger,#c0392b)}
