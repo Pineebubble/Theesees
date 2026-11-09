@@ -17,8 +17,9 @@ function pdfPageName(n){const l=pdfState?.labels?.[n-1];return l&&l!==String(n)?
 async function mountPDFReader(file,p,url){
  const box=$('#pdf-preview');if(!box)return;
  if(!pdfReady()){box.innerHTML=`<div class="pdf-caption"><small>${esc(p.pdfName)}</small><a href="${url}" target="_blank" rel="noopener">Open PDF in new tab ↗</a></div><iframe title="Paper PDF" src="${url}#view=FitH"></iframe><p class="help">The PDF reader could not load, so passages cannot be located here.</p>`;return;}
- box.innerHTML=`<div class="pdf-toolbar"><small class="pdf-file">${esc(p.pdfName)}</small><span class="pdf-pageinfo" id="pdf-pageinfo">Loading…</span><div class="actions"><button data-pdf-zoom="-1" aria-label="Zoom out">−</button><button data-pdf-zoom="0">Fit width</button><button data-pdf-zoom="1" aria-label="Zoom in">+</button><button id="pdf-fullscreen" aria-pressed="false">Full-screen</button><a href="${url}" target="_blank" rel="noopener">Open in new tab ↗</a></div></div><div class="pdf-pages" id="pdf-pages" tabindex="0" aria-label="PDF pages"></div><button class="pdf-save-selection primary" id="pdf-save-selection" hidden>＋ Save passage</button><p class="pdf-tip">Select text in the PDF to save it as a passage. Saved passages are highlighted.</p>`;
+ box.innerHTML=`<div class="pdf-toolbar"><small class="pdf-file">${esc(p.pdfName)}</small><span class="pdf-pageinfo" id="pdf-pageinfo">Loading…</span><div class="actions"><button data-pdf-zoom="-1" aria-label="Zoom out">−</button><button data-pdf-zoom="0">Fit width</button><button data-pdf-zoom="1" aria-label="Zoom in">+</button><button id="pdf-fullscreen" aria-pressed="false">Full-screen</button><a href="${url}" target="_blank" rel="noopener">Open in new tab ↗</a></div>${typeof pdfSearchHTML==='function'?pdfSearchHTML():''}</div><div class="pdf-pages" id="pdf-pages" tabindex="0" aria-label="PDF pages"></div><button class="pdf-save-selection primary" id="pdf-save-selection" hidden>＋ Save passage</button><p class="pdf-tip">Select text in the PDF to save it as a passage. Saved passages are highlighted.</p>`;
  $('#pdf-fullscreen').onclick=()=>setPDFView(!box.classList.contains('pdf-focused'));
+ if(typeof pdfBindSearch==='function')pdfBindSearch();
  try{
   if(!pdfState||pdfState.paperId!==p.id||pdfState.file!==p.pdfName){
    pdfState?.doc?.destroy();
@@ -129,6 +130,7 @@ function pdfDrawHighlights(n){
    Object.assign(d.style,{left:b.l+'px',top:b.t+'px',width:b.r-b.l+'px',height:b.b-b.t+'px'});layer.append(d);
   }
  }
+ if(typeof pdfDrawFind==='function')pdfDrawFind(n,pg,layer,base); // search hits (pdf-search.js)
 }
 /* Scroll to a passage and flash its highlight. */
 async function pdfLocate(id,{quiet=false}={}){
