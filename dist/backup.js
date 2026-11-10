@@ -7,7 +7,7 @@ const BACKUP_DAYS=7;
 const bkKey=k=>`theesees-${k}${typeof sandbox!=='undefined'&&sandbox?'-sandbox':''}`;
 const bkGet=k=>{try{return localStorage.getItem(bkKey(k));}catch{return null;}};
 const bkSet=(k,v)=>{try{localStorage.setItem(bkKey(k),v);}catch{}};
-function markChanged(){bkSet('changed-at',new Date().toISOString());}
+function markChanged(){bkSet('changed-at',new Date().toISOString());if(typeof syncSoon==='function')syncSoon();}
 // Ask the browser not to clear this site's storage when space runs low (Chrome decides quietly; Firefox may ask).
 const storageProtected=(async()=>{try{if(!navigator.storage?.persist)return null;return await navigator.storage.persisted()||await navigator.storage.persist();}catch{return null;}})();
 
@@ -59,11 +59,13 @@ async function showBackup(){
    <div class="actions"><button class="primary" id="backup-now">Back up now ↓</button></div></section>
   <section><h3>Restore</h3><p>Open a backup .zip (or an older records-only .json export). You’ll see what it contains before anything changes.</p>
    <label class="backup-file">Choose a backup file<input type="file" id="restore-file" accept=".zip,.json,application/zip,application/json"></label><div id="restore-preview"></div></section>
+  ${typeof syncSectionHTML==='function'?syncSectionHTML():''}
   <section class="backup-status"><p>${prot===true?'✓ This browser keeps Theesees’s storage protected from automatic clearing.':prot===false?'This browser hasn’t agreed to protect Theesees’s storage, so it could clear it if space runs very low. Regular backups keep you safe.':'This browser can’t say whether it protects Theesees’s storage. Regular backups keep you safe.'} Clearing browsing data for this site deletes it regardless.</p>
    <p><button class="link" id="export-json">Download records only (.json, no PDFs)</button></p></section></div>`);
  $('#backup-now').onclick=e=>backupNow(e.currentTarget);
  $('#export-json').onclick=()=>{download('theesees-reading-records.json',{version:2,exportedAt:new Date().toISOString(),...data});toast('Exported records only. PDFs and pictures are not included; use Back up now for a full backup.');};
  $('#restore-file').onchange=e=>{const f=e.target.files[0];if(f)previewRestore(f);};
+ if(typeof syncRefreshSection==='function')syncRefreshSection();
 }
 
 // Reads a backup without changing anything; returns what would be restored.
@@ -110,7 +112,7 @@ async function restoreBackup(b,button){
 }
 // Shown in the overview line when there is work and no recent backup.
 function backupNudge(){
- if(!bkHasContent(data))return '';
+ if(!bkHasContent(data)||typeof syncHealthy==='function'&&syncHealthy())return ''; // a working sync folder already keeps a copy
  const last=bkGet('last-backup'),changed=bkGet('changed-at'),days=last?(Date.now()-Date.parse(last))/864e5:Infinity;
  if(last&&(days<BACKUP_DAYS||!changed||Date.parse(changed)<=Date.parse(last)))return '';
  return `<button data-backup class="needs" title="Download a full backup: records, PDFs and pictures">${last?`Back up · last ${bkAgo(last)}`:'Not backed up yet · Back up'}</button>`;
