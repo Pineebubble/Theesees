@@ -852,3 +852,8 @@ body.ac-resizing iframe,body.ac-resizing #pdf-pages{pointer-events:none}
 .ask-claude-panel header .actions{justify-content:flex-start;gap:2px;margin-left:-8px}
 .ask-claude-panel header #ac-close{position:absolute;top:12px;right:10px}
 .ask-claude-panel header .ac-who{margin:6px 0 2px}
+/* "Needs work" notices: a flat pale-pink label with dark text, instead of coloured text */
+.badge.unlinked,.claim-entry .badge.unlinked{display:inline-block;background:#ffdde5;color:var(--ink);padding:2px 8px;margin-right:6px;font:400 12px/1.4 var(--sans);border-radius:0}
+.claim-gaps{display:inline-block;background:#ffdde5;color:var(--ink)!important;padding:4px 10px}
+.overview button.needs{background:#ffdde5;color:var(--ink);padding:2px 8px}
+.overview button.needs:hover{background:var(--c-pink)}
