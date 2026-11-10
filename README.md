@@ -70,24 +70,32 @@ This repository contains application code and design assets, not personal papers
 
 No live AI calls (the optional Crossref/OpenAlex lookups are the only network requests), automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
 
-## Ask Claude (side chat)
+## Ask AI (side chat: Claude or ChatGPT)
 
-**Ask Claude** (bottom right, on every page) opens a chat panel; drag its left edge to resize it (double-click the edge to reset). With **Include this page** on, your message carries what you are looking at: the paper with the whole PDF's text (marked with page numbers; very long PDFs are cut off at about 300,000 characters), all its saved passages and its discussions, a thought and its evidence, the section you're writing, a discussion, or your literature list, plus any text you've selected.
+**Ask AI** (bottom right, on every page) opens a chat panel. Choose **Claude** or **ChatGPT** at the top; each reply is labelled with who wrote it, and you can switch mid-conversation; drag its left edge to resize it (double-click the edge to reset). With **Include this page** on, your message carries what you are looking at: the paper with the whole PDF's text (marked with page numbers; very long PDFs are cut off at about 300,000 characters), all its saved passages and its discussions, a thought and its evidence, the section you're writing, a discussion, or your literature list, plus any text you've selected.
 
-Two more switches give Claude the bigger picture:
+Two more switches give the AI the bigger picture:
 
-- **Project overview** (sent with every message): your research question (from the About card), your **notes for Claude** (the *What Claude knows* button; saved with your records), progress, themes, papers with status and relevance notes, thoughts with their evidence counts, the outline with word counts, and recent discussions. Titles and notes only, so it stays small; *What Claude knows* shows exactly what is sent.
+- **Project overview** (sent with every message): your research question (from the About card), your **notes for the AI** (the *What the AI knows* button; saved with your records), progress, themes, papers with status and relevance notes, thoughts with their evidence counts, the outline with word counts, and recent discussions. Titles and notes only, so it stays small; *What the AI knows* shows exactly what is sent.
 - **Library search** (per question): the passages, PDF pages, source texts, comments, thoughts and draft paragraphs from all your papers that share words with your question (rarer words count for more), numbered with their sources. It is keyword-based, so use the words your sources use.
 
-**Keep this answer** saves a reply (and your question) as a discussion, new or existing, so it shows up in search and Claude sees it next time; it can also become a thought.
+**Keep this answer** saves a reply (and your question) as a discussion, new or existing, so it shows up in search and the AI sees it next time; it can also become a thought.
 
-It runs through Claude Code on your own computer, using your Claude login, so there is no API key or extra cost:
+It runs through Claude Code (for Claude) or OpenAI's Codex CLI (for ChatGPT) on your own computer, using your existing Claude or ChatGPT subscription, so there is no API key or extra cost:
 
-1. Install [Claude Code](https://claude.com/claude-code) and sign in once (run `claude` in Terminal).
-2. In this folder, run `node claude-bridge.mjs` and keep that window open while you chat (Ctrl+C stops it).
-3. Open **Ask Claude** and paste the key it prints (once per browser). In Chrome, allow access to this computer if asked.
+**First-time setup** (once per computer; the panel's **Setup** button shows the same steps with copy buttons):
 
-`claude-bridge.mjs` listens on this computer only (127.0.0.1:8790), answers only the Theesees website and local copies on port 8765 (add another with `THEESEES_BRIDGE_ORIGIN=…`), and only requests carrying its key, stored in `~/.config/theesees/bridge-key` (`--new-key` makes a new one). Claude runs with its tools switched off (no commands, no reading or changing files, no opening web pages), no MCP servers and in an empty folder. The one exception is **Web search** (a switch in the panel, on by default), which returns search results and links for finding sources and never touches this computer; links in replies open in a new tab. Each message's size (not its text) is printed in the bridge's window. Messages and page context go to Anthropic through Claude Code, as when you use Claude directly. Conversations are kept in this browser only. Works in Chrome; other browsers may block a website from reaching your computer.
+1. Check Node.js 18 or newer with `node --version`; if it's missing, install the LTS version from [nodejs.org](https://nodejs.org).
+2. Install at least one assistant and sign in once:
+   - Claude: `npm install -g @anthropic-ai/claude-code`, then run `claude` and sign in (type `/exit` to leave).
+   - ChatGPT: `npm install -g @openai/codex`, then `codex login`.
+3. Get this folder: `git clone https://github.com/Pineebubble/Theesees.git` (or Code → Download ZIP), or `git pull` to update it.
+4. Each time you want to chat: `cd Theesees`, then `node ai-bridge.mjs`, and keep that window open (Ctrl+C stops it). The old `node claude-bridge.mjs` also works.
+5. In Ask AI, paste the key the helper prints and click Connect (once per browser). If Chrome asks to let the site access devices on your local network, click Allow.
+
+If something goes wrong: “Port 8790 is in use” means the helper is already running in another window; “…isn’t installed (or signed in)” means step 2 for that assistant; a key mismatch means copying the key again (each computer has its own; `node ai-bridge.mjs --new-key` makes a new one).
+
+`ai-bridge.mjs` listens on this computer only (127.0.0.1:8790), answers only the Theesees website and local copies on port 8765 (add another with `THEESEES_BRIDGE_ORIGIN=…`), and only requests carrying its key, stored in `~/.config/theesees/bridge-key` (`--new-key` makes a new one). Each assistant runs in an empty folder with its tools switched off: no commands, no reading or changing files, no opening web pages. Claude Code runs with no MCP servers; Codex runs read-only, without its shell, file-editing, image, browser, computer-use, plugin, app and hook tools, and without your Codex settings. The one exception is **Web search** (a switch in the panel, on by default), which returns search results and links for finding sources and never touches this computer; links in replies open in a new tab. Each message's size (not its text) is printed in the bridge's window. Messages and page context go to Anthropic (Claude) or OpenAI (ChatGPT) through their own tools, as when you use them directly. For ChatGPT, the model menu sets how much it thinks (Quick, Default, Thorough). Conversations are kept in this browser only. Works in Chrome; other browsers may block a website from reaching your computer.
 
 ## Developer checks
 

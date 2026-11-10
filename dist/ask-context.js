@@ -1,6 +1,6 @@
 'use strict';
-/* What Ask Claude knows beyond the page you're on (used by ask-claude.js):
-   1. A project overview sent with every message: your research question and notes for Claude, themes, papers
+/* What Ask AI knows beyond the page you're on (used by ask-claude.js):
+   1. A project overview sent with every message: your research question and notes for the AI, themes, papers
       with reading status and relevance notes, thoughts and their evidence, the outline with word counts, and
       recent discussions. Titles and notes only, so it stays small.
    2. A library search for each question: the passages, PDF pages, comments, thoughts and drafts that share
@@ -15,7 +15,7 @@ function acOverview(){
  const a=typeof aboutData==='function'?aboutData():{},parts=[];
  const who=[a.name&&a.name!=='The researcher'?a.name:'',a.field].filter(Boolean).join(', ');
  if(who||a.question)parts.push(`Researcher: ${who||'(not set)'}${a.question?`\nResearch question: ${a.question}`:''}`);
- if(data.aiNotes?.trim())parts.push(`What the researcher wants Claude to know:\n${data.aiNotes.trim()}`);
+ if(data.aiNotes?.trim())parts.push(`What the researcher wants the assistant to know:\n${data.aiNotes.trim()}`);
  const read=data.papers.filter(p=>p.status==='Read').length,reading=data.papers.filter(p=>p.status==='Reading').length;
  const words=(data.outline?.parts||[]).reduce((n,p)=>n+(typeof partWords==='function'?partWords(p):0),0);
  parts.push(`Progress: ${data.papers.length} papers (${read} read, ${reading} reading), ${data.passages.length} saved passages, ${data.threads.length} discussions, ${(data.claims||[]).filter(c=>c.status!=='Abandoned').length} thoughts, ${words.toLocaleString()} words drafted.`);
@@ -86,9 +86,9 @@ function acLibrary(question,skipPaper){
 
 // --- Instructions & what gets sent ----------------------------------------------------------------------
 function editAiNotes(){
- modal('What Claude knows',`<form><label>Notes for Claude <small>(sent with every message; saved with your records)</small><textarea name="notes" rows="6" placeholder="e.g. My thesis argues that cosplay is a form of intercultural translation. I write in British English. My supervisor wants more on audience reception.">${esc(data.aiNotes||'')}</textarea></label>
+ modal('What the AI knows',`<form><label>Notes for the AI <small>(sent with every message; saved with your records)</small><textarea name="notes" rows="6" placeholder="e.g. My thesis argues that cosplay is a form of intercultural translation. I write in British English. My supervisor wants more on audience reception.">${esc(data.aiNotes||'')}</textarea></label>
   <p class="help">Your research question and name come from the card on the About page.</p>
-  <details class="ac-preview"><summary>See the project overview Claude receives</summary><pre>${esc(acOverview())}</pre></details>${actions('Save')}</form>`,f=>{data.aiNotes=String(f.get('notes')||'').trim();save();closeModal();toast('Saved. Claude will see this with every message.');});
+  <details class="ac-preview"><summary>See the project overview the AI receives</summary><pre>${esc(acOverview())}</pre></details>${actions('Save')}</form>`,f=>{data.aiNotes=String(f.get('notes')||'').trim();save();closeModal();toast('Saved. The AI will see this with every message.');});
 }
 
 // --- 3. Saving a reply ----------------------------------------------------------------------------------
@@ -96,14 +96,14 @@ function acSaveReply(i){
  const reply=acChat[i],question=acChat[i-1]?.role==='user'?acChat[i-1].content:'';if(!reply?.content)return;
  const here=page==='reader'?currentPaper:null,threads=data.threads.filter(t=>!here||threadPapers(t).some(p=>p.id===here));
  const options=[...threads,...data.threads.filter(t=>!threads.includes(t))];
- modal('Keep this answer',`<form><p>Saved answers become part of your workspace: they show up in search, and Claude sees them next time.</p>
+ modal('Keep this answer',`<form><p>Saved answers become part of your workspace: they show up in search, and the AI sees them next time.</p>
   <label>Save to<select name="where"><option value="new">A new discussion${here?` about “${esc(acClip(getPaper(here)?.title,50))}”`:''}</option>${options.map(t=>`<option value="${esc(t.id)}">Discussion: ${esc(acClip(t.title,70))}</option>`).join('')}</select></label>
-  <label class="ac-new-title">Title of the new discussion<input name="title" value="${esc(acClip(question||'Answer from Claude',90))}"></label>
+  <label class="ac-new-title">Title of the new discussion<input name="title" value="${esc(acClip(question||`Answer from ${AC_WHO[reply.who||'claude'].name}`,90))}"></label>
   <label class="check"><input type="checkbox" name="withq" ${question?'checked':''}> Include my question</label>
   <div class="actions"><button type="button" id="ac-as-thought">Make it a thought instead…</button><button type="submit" class="primary">Save</button></div></form>`,f=>{
   const where=f.get('where'),now=new Date().toISOString();
   let t=data.threads.find(x=>x.id===where);
-  if(!t){t={id:uid(),title:String(f.get('title')||'Answer from Claude').trim()||'Answer from Claude',platform:'Ask Claude',paperIds:here?[here]:[],passageIds:[],status:'Open',blocks:[],created:now};data.threads.push(t);}
+  if(!t){t={id:uid(),title:String(f.get('title')||'').trim()||`Answer from ${AC_WHO[reply.who||'claude'].name}`,platform:`Ask AI (${AC_WHO[reply.who||'claude'].name})`,paperIds:here?[here]:[],passageIds:[],status:'Open',blocks:[],created:now};data.threads.push(t);}
   const add=[];if(f.get('withq')&&question)add.push({id:uid(),parentId:null,subthread:false,anchor:null,anchorQuote:'',text:question,role:'Me',key:false,source:null,at:now});
   add.push({id:uid(),parentId:null,subthread:false,anchor:null,anchorQuote:'',text:reply.content,role:'AI',key:false,source:null,at:now});
   t.blocks=[...(t.blocks||[]),...add];if(!save())return;
