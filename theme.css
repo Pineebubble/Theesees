@@ -824,3 +824,31 @@ body.ac-resizing iframe,body.ac-resizing #pdf-pages{pointer-events:none}
 .file-pick-name{min-width:0;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .file-pick.chosen .file-pick-name{color:var(--ink)}
 .file-pick-input{position:absolute;left:10px;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none}
+/* Ask AI: choosing Claude or ChatGPT, and who wrote each reply */
+.ask-claude-panel .ac-who{margin:6px 0 4px;display:flex}
+.ask-claude-panel .ac-who button{font:500 12px/1 var(--sans);text-transform:none;letter-spacing:0;padding:6px 12px}
+.ac-who-tag{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.02em}
+.ask-claude-panel header{align-items:flex-start}
+.ask-claude-panel header>div:first-child{flex:1;min-width:0}
+.ask-claude-panel header .actions{flex-wrap:nowrap;white-space:nowrap}
+.ask-claude-panel header small#ac-status{display:block;line-height:1.4}
+/* Ask AI: first-time setup guide */
+.ac-setup form{display:block;margin:8px 0 12px}
+.ac-setup label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+.ac-key-row{display:flex;gap:6px}.ac-key-row input{flex:1;min-width:0;font:12px var(--mono)}
+.ac-guide-box>summary{cursor:pointer;font-weight:600;font-size:13px;margin:4px 0 8px}
+.ac-guide{font-size:13px;line-height:1.55}
+.ac-guide ol{padding-left:20px;margin:8px 0}.ac-guide ol>li{margin-bottom:10px}
+.ac-guide ul{padding-left:18px;margin:4px 0}
+.ac-guide code{font:12px var(--mono);background:var(--wash);padding:1px 4px}
+.ac-cmd{position:relative;display:flex;align-items:center;gap:8px;margin:6px 0;padding:7px 8px 7px 10px;background:var(--wash);white-space:pre-wrap;word-break:break-all}
+.ac-cmd code{flex:1;background:none;padding:0}
+.ac-copy{flex:none;font-size:11px;padding:3px 8px}
+.ac-guide h4{margin:12px 0 4px;font-size:13px}
+.ac-guide dl{margin:0}.ac-guide dt{font-weight:500;margin-top:6px}.ac-guide dd{margin:2px 0 0 0;color:#4a4945}
+#modal .ac-guide{max-width:620px}
+/* Ask AI header: title and close on top, assistant and status below, then the buttons */
+.ask-claude-panel header{position:relative;flex-direction:column;align-items:stretch;gap:6px;padding-right:44px}
+.ask-claude-panel header .actions{justify-content:flex-start;gap:2px;margin-left:-8px}
+.ask-claude-panel header #ac-close{position:absolute;top:12px;right:10px}
+.ask-claude-panel header .ac-who{margin:6px 0 2px}
