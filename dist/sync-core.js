@@ -13,9 +13,14 @@ const SYNC_FILE='theesees-workspace.json';
    Sync apps copy whole files, so another laptop that never received our last write can overwrite it. Then our
    write is missing from the folder's history: that is a conflict too, even with no new changes here.
    Returns 'push' (write this browser's work to the folder), 'load' (replace this browser's work with the
-   folder's), 'conflict' (both changed: ask), or 'idle'. */
-function syncDecide({folderStamp,seenStamp,changedAt,syncedAt,localHasContent,ownStamp=null,folderHistory=[]}){
- if(!folderStamp)return 'push';
+   folder's), 'conflict' (both changed: ask), or 'idle'.
+   cautious (used when the Theesees app on this computer connects every browser by itself, with nobody
+   choosing a folder): an empty browser never writes to an empty folder, and a browser that has work but
+   has never synced here asks before its work is replaced, or simply saves it if the folder's version is
+   empty (folderHasContent false). */
+function syncDecide({folderStamp,seenStamp,changedAt,syncedAt,localHasContent,ownStamp=null,folderHistory=[],cautious=false,folderHasContent=true}){
+ if(!folderStamp)return cautious&&!localHasContent?'idle':'push';
+ if(cautious&&!seenStamp&&localHasContent)return folderHasContent?'conflict':'push';
  const folderChanged=folderStamp!==seenStamp;
  const localChanged=!!changedAt&&(!syncedAt||changedAt>syncedAt);
  const ourWriteLost=!!ownStamp&&folderStamp!==ownStamp&&!folderHistory.includes(ownStamp);

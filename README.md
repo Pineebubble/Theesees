@@ -13,18 +13,28 @@ One-time setup, done in the GitHub repository: **Settings → Pages → Build an
 ## Use a local copy instead
 
 1. On GitHub, choose **Code → Download ZIP**, then unzip it. Alternatively, clone this repository.
-2. Open `dist/prototype.html` in Chrome or Edge. No build, account, API key, or package installation is required.
+2. Open `dist/index.html` in Chrome or Edge. No build, account, API key, or package installation is required.
 3. Keep the entire `dist` folder together: its scripts and styles are required.
 
-For a consistent browser storage origin, use a local server if Python 3 is installed. In a terminal opened in the downloaded folder:
+### Recommended: the Theesees app on your computer (any browser, one workspace)
+
+If Python 3 is installed, run Theesees's own small server from the downloaded folder:
 
 ```sh
-python3 -m http.server 8765 --bind 127.0.0.1 --directory dist
+python3 theesees-server.py
 ```
 
-On Windows, use `py -3` instead of `python3` if necessary. Open **http://127.0.0.1:8765/prototype.html** and leave the terminal running. Stop it with Ctrl+C.
+On Windows, use `py -3` instead of `python3` if necessary. Open **http://127.0.0.1:8765/** and leave the terminal running (Ctrl+C stops it). Besides serving the app, it keeps your workspace in a folder on the computer, `~/Documents/Theesees Workspace` (choose another with `--store`), so **every browser on that computer opens the same work**: Chrome, Edge, Safari or Firefox, with nothing to choose or reconnect. Each change is saved about a second after you make it; another browser picks it up when you open or come back to Theesees. If two browsers changed things at once, Theesees asks which to keep and saves the other as a safety copy. The folder has the same layout as a sync folder (`theesees-workspace.json`, `PDFs/`, `Pictures/`, `Conflicts/`) plus `Versions/`, one earlier copy of the workspace file per day for 30 days.
 
-Keep using the same browser and address. File URLs and localhost have different storage; switching can make your existing records appear absent. File-URL storage behavior also varies by browser.
+The first browser you open that already holds work saves it into the folder; an empty browser then loads it. A browser that has different work of its own is asked before anything is replaced.
+
+**On a Mac, use it as an app:** run `./mac-app/install.sh` once. It builds **Theesees.app** into Applications (drag it to the Dock): Theesees in its own window, no browser needed. Opening it starts the server if needed, and it shares the same workspace folder as your browsers. Downloads (backups, exports) go to your Downloads folder; links to other websites open in your browser. Building the window needs Apple's command line tools (`xcode-select --install`); without them the icon opens Theesees in your default browser instead. Re-run the installer if you move the project folder. The server keeps running until you log out or restart; its messages go to `~/Library/Logs/Theesees.log`.
+
+Only this computer can reach the server, and it refuses requests from other websites.
+
+### Without it
+
+`python3 -m http.server 8765 --bind 127.0.0.1 --directory dist` (or opening the file directly) also works, but then your work lives only in that one browser: keep using the same browser and address. File URLs and localhost have different storage; switching can make your existing records appear absent. File-URL storage behavior also varies by browser.
 
 ## Important: your research does not live in this repository
 
@@ -34,7 +44,8 @@ This repository contains application code and design assets, not personal papers
 - Attached PDFs use browser IndexedDB.
 - Attached pictures in comments also use IndexedDB. Theesees asks the browser to keep this storage permanently; clearing this site's browsing data still deletes it.
 - **Backup & restore** (top right) downloads one .zip with everything in this browser: records, every attached PDF (named after its paper) and the pictures in comments. You can open it like any ZIP. **Restore** shows what a backup contains next to what's in the browser now, then replaces the browser's contents, first downloading a safety backup of them. Older records-only .json exports can be restored too (PDFs and pictures already in the browser are kept). This is also how to move your workspace to another computer or browser.
-- **Sync folder** (in Backup & restore; Chrome or Edge on a computer): choose a folder that your laptops share, such as one inside Dropbox, Google Drive or OneDrive (or on a USB stick you carry). Theesees saves your workspace there a few seconds after each change (`theesees-workspace.json`, `PDFs/`, `Pictures/`) and, when you open it on the other laptop or come back to the tab, loads newer work from the folder. If both laptops changed things since they last synced, or one overwrote the other's latest save, it asks which version to keep; the other is kept (a backup download, or the folder's `Conflicts/` subfolder). Wait for your sync app to finish before switching laptops. After a browser restart, Chrome may ask you to **Reconnect sync folder** (a button in the overview line).
+- **On one computer, in any browser:** open Theesees through `theesees-server.py` (see above); the workspace is then also kept in a folder on that computer and shared by all its browsers. To share it with a second laptop too, start the server with `--store` pointing inside Dropbox, Google Drive or OneDrive on both.
+- **Sync folder** (in Backup & restore; Chrome or Edge on a computer; not shown while the Theesees app on your computer is keeping the folder): choose a folder that your laptops share, such as one inside Dropbox, Google Drive or OneDrive (or on a USB stick you carry). Theesees saves your workspace there a few seconds after each change (`theesees-workspace.json`, `PDFs/`, `Pictures/`) and, when you open it on the other laptop or come back to the tab, loads newer work from the folder. If both laptops changed things since they last synced, or one overwrote the other's latest save, it asks which version to keep; the other is kept (a backup download, or the folder's `Conflicts/` subfolder). Wait for your sync app to finish before switching laptops. After a browser restart, Chrome may ask you to **Reconnect sync folder** (a button in the overview line).
 - A reminder ("Not backed up yet" / "Back up · last 9 days ago") appears in the overview line when you have unsaved changes and no backup in the last 7 days. Keep backups somewhere safe, such as a cloud drive.
 - There is no cloud sync. GitHub does not synchronize research data.
 - Do not commit exported research, backups, private conversations, or PDFs to this public repository (`.gitignore` already excludes backups, JSON exports and PDFs).
@@ -116,6 +127,7 @@ node backup-check.cjs
 node search-check.cjs
 node ask-check.cjs
 node sync-check.cjs
+python3 server-check.py
 ```
 
 These cover reader logic, text cleanup, replies/subthreads, metadata preservation, Trash expiry, thoughts/evidence links, outline ordering and Markdown export, PDF passage matching, and that all app scripts load together without name clashes. They are not full browser tests. Latest visual changes have not been browser-verified because local-file automation was blocked.

@@ -23,6 +23,15 @@ assert.equal(d({folderStamp:'B2',seenStamp:'A2',ownStamp:'A2',folderHistory:['A1
 // We wrote last and nothing changed since: idle. We only loaded (no own write): newer folder versions load.
 assert.equal(d({folderStamp:'A2',seenStamp:'A2',ownStamp:'A2',folderHistory:['A1']}),'idle');
 assert.equal(d({folderStamp:'B3',seenStamp:'B1',ownStamp:null,folderHistory:['B1','B2']}),'load');
+// Opened through the Theesees app on this computer (cautious): browsers connect by themselves, so an empty
+// browser never writes over an empty folder, and a browser with work that has never synced here always asks
+// first (even with no recorded change time), unless the folder's version is empty: then its work is saved.
+assert.equal(d({folderStamp:null,localHasContent:false,cautious:true}),'idle');
+assert.equal(d({folderStamp:null,cautious:true}),'push');
+assert.equal(d({seenStamp:'',syncedAt:'',changedAt:null,cautious:true}),'conflict');
+assert.equal(d({seenStamp:'',syncedAt:'',changedAt:null,cautious:true,folderHasContent:false}),'push');
+assert.equal(d({seenStamp:'',syncedAt:'',changedAt:null,localHasContent:false,cautious:true}),'load');
+assert.equal(d({folderStamp:'F2',cautious:true}),'load');assert.equal(d({changedAt:'2026-11-09T11:00:00Z',cautious:true}),'push');
 // Files: write new or changed ones, remove ones deleted here, never touch other files in the folder.
 const local=[{store:'pdfs',key:'p1',size:100,type:'application/pdf'},{store:'pdfs',key:'p2',size:50,type:'application/pdf'},{store:'images',key:'i/1',size:7,type:'image/png'}];
 const folder=new Map([['PDFs/p1.pdf',100],['PDFs/p2.pdf',49],['PDFs/gone.pdf',10],['Pictures/old.png',3],['notes.txt',5]]);
