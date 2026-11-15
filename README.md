@@ -77,7 +77,8 @@ This repository contains application code and design assets, not personal papers
 - **About** page: what the tool is for, an editable card about the researcher (saved with your records), a few numbers about your reading and writing, and some small celebrations (marking a paper Read or a thought Defensible).
 - **Translate** into English or Chinese (中文; the choice is remembered): select text anywhere (a PDF, source text, a passage, a comment) and click **Translate**. Quick translation uses Chrome's built-in translator (desktop Chrome 138 or later): it runs on your computer, downloads each language pack once after a click, and sends nothing anywhere. **Copy for AI translation** copies the text with instructions (translation, key terms, culture-specific notes) to paste into Claude or ChatGPT.
 - File pickers use the app's own English button (“Choose a file…”) instead of the browser's, which follows the browser's language.
-- Zotero CSL-JSON bibliography import, not live Zotero synchronization.
+- **Sync from Zotero** (in Zotero / import, when Theesees is opened through `theesees-server.py` or the Mac app): read and annotate in Zotero, think and write here. Each highlight or underline becomes a passage under its paper (papers are matched by DOI or title, not duplicated); a comment you wrote on a highlight becomes a discussion linked to that passage; a note with no quoted text becomes a discussion under the paper. Each passage has **Open in Zotero**, which opens the PDF at that highlight. Syncing again adds what is new and updates what changed in Zotero; it never deletes anything in Theesees, never overwrites a comment you edited here, and what you deleted here does not come back. Nothing is changed in Zotero. Needs Zotero open with Settings → Advanced → “Allow other applications on this computer to communicate with Zotero” ticked. Your own library only (not group libraries); drawings and standalone Zotero notes are not imported.
+- Zotero CSL-JSON bibliography import (works everywhere, including the website).
 
 No live AI calls (the optional Crossref/OpenAlex lookups are the only network requests), automatic conclusions, or PDF OCR. A PDF match shows where a quote appears; it is not a check of your interpretation. Shared chat URLs alone do not import contents. Vendor-specific JSON chat exports are retained as raw text, not reconstructed.
 
@@ -127,6 +128,7 @@ node backup-check.cjs
 node search-check.cjs
 node ask-check.cjs
 node sync-check.cjs
+node zotero-check.cjs
 python3 server-check.py
 ```
 

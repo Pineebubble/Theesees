@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Checks theesees-server.py: serves the app, stores and returns workspace files, keeps a daily version,
-and refuses other websites, other addresses and paths outside the workspace.   python3 server-check.py"""
+and refuses other websites, other addresses and paths outside the workspace, and relays only Zotero reads.   python3 server-check.py"""
 import http.client, json, os, socket, subprocess, sys, tempfile, time
 
 here = os.path.dirname(os.path.abspath(__file__))
 with socket.socket() as s:
     s.bind(('127.0.0.1', 0)); port = s.getsockname()[1]
 store = tempfile.mkdtemp(prefix='theesees-check-')
-srv = subprocess.Popen([sys.executable, os.path.join(here, 'theesees-server.py'), '--port', str(port), '--store', store], stdout=subprocess.DEVNULL)
+srv = subprocess.Popen([sys.executable, os.path.join(here, 'theesees-server.py'), '--port', str(port), '--store', store], stdout=subprocess.DEVNULL,
+                       env={**os.environ, 'THEESEES_ZOTERO': 'http://127.0.0.1:9/none'})
 
 def call(method, path, body=None, **headers):
     c = http.client.HTTPConnection('127.0.0.1', port, timeout=5)
@@ -42,6 +43,11 @@ try:
         assert call('PUT', bad, b'x', **W)[0] in (400, 405), bad
     assert call('DELETE', '/_store/theesees-workspace.json', **W)[0] == 400
     assert call('DELETE', '/_store/PDFs/p1.pdf', **W)[0] == 200 and call('GET', '/_store/PDFs/p1.pdf')[0] == 404
+    # Zotero relay: only the two requests the app makes; here Zotero is "not running" (nothing on that port).
+    assert call('GET', '/_zotero/items')[0] == 502 and json.loads(call('GET', '/_zotero/items')[1])['error'] == 'not-running'
+    for bad in ('/_zotero/items?itemKey=../x', '/_zotero/items?start=x', '/_zotero/collections', '/_zotero/items/ABCD1234/file'):
+        assert call('GET', bad)[0] == 400, bad
+    assert call('GET', '/_zotero/items', **{'Sec-Fetch-Site': 'cross-site'})[0] == 403
     assert not [n for d, _, f in os.walk(store) for n in f if n.startswith('.saving-')]
     print('PASS: local server (serves the app, stores workspace files, daily version, refuses other sites and paths)')
 finally:

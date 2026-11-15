@@ -8,11 +8,17 @@ The folder (default: ~/Documents/Theesees Workspace) has the same layout as a sy
 theesees-workspace.json, PDFs/, Pictures/, Conflicts/. The app reads and writes it through /_store/.
 One copy of the workspace file per day is kept in Versions/. Only this computer can connect, and only
 pages served from here can read or change the folder. Needs Python 3.8+, nothing else.
+
+It also relays the app's "Sync from Zotero": /_zotero/items reads highlights and their papers from Zotero
+running on this computer (Zotero's Settings → Advanced → "Allow other applications on this computer to
+communicate with Zotero"). A web page cannot ask Zotero directly, so the request goes through here. It only
+reads, and only Zotero's own library on this computer.
 """
 import argparse, json, os, re, shutil, sys, tempfile, time
+import urllib.error, urllib.request
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlencode, urlsplit
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PREFIX = '/_store/'
@@ -20,6 +26,10 @@ RECORD = 'theesees-workspace.json'
 # Only the files the app itself makes: ids are letters, digits, "_", "." and "-" (see syncSafeId in sync-core.js).
 ALLOWED = re.compile(r'(theesees-workspace\.json|(PDFs|Pictures)/[\w.-]+|Conflicts/[\w .-]+\.json)\Z', re.ASCII)
 MAX_BYTES = 2 * 1024 ** 3
+ZOTERO_PREFIX = '/_zotero/'
+ZOTERO_ITEMS = os.environ.get('THEESEES_ZOTERO') or 'http://127.0.0.1:23119/api/users/0/items'
+ZOTERO_KEYS = re.compile(r'[A-Z0-9]{8}(,[A-Z0-9]{8}){0,49}\Z')
+ZOTERO = urllib.request.build_opener(urllib.request.ProxyHandler({}))  # this computer only: never through a proxy
 KEEP_VERSIONS = 30
 
 
@@ -33,7 +43,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         # The app's files change when Theesees is updated; let the browser check instead of guessing.
-        if not self.path.startswith(PREFIX):
+        if not self.path.startswith((PREFIX, ZOTERO_PREFIX)):
             self.send_header('Cache-Control', 'no-cache')
         super().end_headers()
 
@@ -77,8 +87,30 @@ class Handler(SimpleHTTPRequestHandler):
         self.close_connection = True  # an unread upload may still be on the line
         self.reply(code, {'error': why})
 
+    # --- Zotero on this computer (read only) ---
+    def zotero(self):
+        """/_zotero/items?start=N lists annotations, 100 at a time; with itemKey=A,B,… it returns those items.
+        Replies {total, items}, or an error the app turns into advice: not-running, not-enabled, zotero."""
+        url = urlsplit(self.path)
+        asked = parse_qs(url.query)
+        start, keys = asked.get('start', ['0'])[0], asked.get('itemKey', [''])[0]
+        if url.path != ZOTERO_PREFIX + 'items' or not start.isdigit() or (keys and not ZOTERO_KEYS.match(keys)):
+            return self.refuse(400, 'Not a Zotero request Theesees makes.')
+        query = {'format': 'json', 'limit': '100', 'start': start}
+        query.update({'itemKey': keys} if keys else {'itemType': 'annotation'})
+        try:
+            with ZOTERO.open(ZOTERO_ITEMS + '?' + urlencode(query), timeout=30) as r:
+                items, total = json.load(r), int(r.headers.get('Total-Results') or 0)
+        except urllib.error.HTTPError as e:
+            return self.reply(502, {'error': 'not-enabled' if e.code == 403 else 'zotero', 'status': e.code})
+        except (OSError, ValueError):
+            return self.reply(502, {'error': 'not-running'})
+        self.reply(200, {'total': max(total, len(items)), 'items': items})
+
     # --- The folder ---
     def do_GET(self):
+        if self.path.startswith(ZOTERO_PREFIX):
+            return self.zotero() if self.trusted(False) else self.refuse(403, 'Not allowed.')
         if not self.path.startswith(PREFIX):
             if self.headers.get('Host') not in self.local_names():
                 return self.refuse(403, 'Open Theesees at http://127.0.0.1:%d/' % self.server.server_address[1])

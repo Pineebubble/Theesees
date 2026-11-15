@@ -857,3 +857,8 @@ body.ac-resizing iframe,body.ac-resizing #pdf-pages{pointer-events:none}
 .claim-gaps{display:inline-block;background:#ffdde5;color:var(--ink)!important;padding:4px 10px}
 .overview button.needs{background:#ffdde5;color:var(--ink);padding:2px 8px}
 .overview button.needs:hover{background:var(--c-pink)}
+
+/* Sync from Zotero */
+.zotero-sync{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.zotero-sync #zotero-status{margin:10px 0 0;line-height:1.7}
+.zotero-sync #zotero-status button{margin-top:8px}
