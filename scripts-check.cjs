@@ -1,9 +1,9 @@
 // The app's scripts share one global scope in the browser, so a name declared twice (e.g. two `const plural`)
 // stops a whole file from loading. Compile them together, in the page's order, to catch that.
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const html=fs.readFileSync(__dirname+'/dist/prototype.html','utf8');
+const html=fs.readFileSync(__dirname+'/dist/index.html','utf8');
 const files=[...html.matchAll(/<script[^>]*src="([^"?]+)/g)].map(m=>m[1]).filter(f=>!f.startsWith('vendor/'));
-assert(files.length>5,'expected the app scripts in prototype.html');
+assert(files.length>5,'expected the app scripts in index.html');
 const seen=new Map();
 for(const f of files){
  const code=fs.readFileSync(__dirname+'/dist/'+f,'utf8');
