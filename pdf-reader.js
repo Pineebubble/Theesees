@@ -84,8 +84,12 @@ async function pdfRenderPage(n){
  const gen=st.generation;pg.rendering=true;
  try{
   const page=await st.doc.getPage(n),vp=page.getViewport({scale:st.scale}),dpr=Math.min(window.devicePixelRatio||1,2);
-  const canvas=pg.div.querySelector('canvas');canvas.width=Math.floor(vp.width*dpr);canvas.height=Math.floor(vp.height*dpr);canvas.style.width=Math.floor(vp.width)+'px';canvas.style.height=Math.floor(vp.height)+'px';
-  await page.render({canvasContext:canvas.getContext('2d'),viewport:vp,transform:dpr!==1?[dpr,0,0,dpr,0,0]:null}).promise;
+  // Sharp text needs one canvas pixel per screen pixel: the canvas's on-screen size is exactly its pixel size
+  // divided by dpr (rounding the two separately made pages ~0.1% too big, so the browser resampled them),
+  // and pdfSnap lines it up with the screen's pixel grid.
+  const canvas=pg.div.querySelector('canvas'),w=Math.round(vp.width*dpr),h=Math.round(vp.height*dpr);
+  canvas.width=w;canvas.height=h;canvas.style.width=w/dpr+'px';canvas.style.height=h/dpr+'px';pdfSnap(canvas);
+  await page.render({canvasContext:canvas.getContext('2d'),viewport:vp,transform:[w/vp.width,0,0,h/vp.height,0,0]}).promise;
   if(gen!==st.generation||pdfState!==st)return;
   const layer=pg.div.querySelector('.textLayer');layer.innerHTML='';layer.style.setProperty('--scale-factor',vp.scale);
   const textDivs=[];await pdfjsLib.renderTextLayer({textContentSource:await pdfText(st,n),container:layer,viewport:vp,textDivs}).promise;
@@ -98,6 +102,14 @@ async function pdfRenderPage(n){
  }catch{/* A page that fails to render stays blank; the rest of the document still works. */}
  finally{pg.rendering=false;}
 }
+// Centring a page can leave it a fraction of a pixel off the screen's grid, which blurs it; nudge it back.
+// Scrolling moves whole screen pixels, so this holds until the layout changes (pdfSnapAll on resize).
+function pdfSnap(canvas){
+ const dpr=Math.min(window.devicePixelRatio||1,2);canvas.style.transform='';
+ const r=canvas.getBoundingClientRect(),off=v=>(Math.round(v*dpr)-v*dpr)/dpr;
+ const dx=off(r.left),dy=off(r.top);if(Math.abs(dx)>.001||Math.abs(dy)>.001)canvas.style.transform=`translate(${dx}px,${dy}px)`;
+}
+function pdfSnapAll(){pdfState?.pages?.forEach(pg=>{if(pg.rendered)pdfSnap(pg.div.querySelector('canvas'));});}
 function pdfReleasePage(n){
  const pg=pdfState?.pages?.[n-1];if(!pg||!pg.rendered)return;
  const c=pg.div.querySelector('canvas');c.width=c.height=0;pg.div.querySelector('.textLayer').innerHTML='';pg.div.querySelector('.pdf-hl').innerHTML='';pg.textDivs=null;pg.rendered=false;
@@ -153,7 +165,7 @@ function pdfPageInfo(){const el=$('#pdf-pageinfo'),st=pdfState;if(!el||!st?.doc)
 function pdfBindPages(){
  const box=$('#pdf-pages'),btn=$('#pdf-save-selection');let pending=null,resizeTimer,lastW=box.clientWidth;
  box.addEventListener('scroll',()=>{pdfPageInfo();btn.hidden=true;},{passive:true});
- new ResizeObserver(()=>pdfFitPassages()).observe(box.closest('.source-pane')||box);
+ new ResizeObserver(()=>{pdfFitPassages();pdfSnapAll();}).observe(box.closest('.source-pane')||box);
  new ResizeObserver(()=>{if(!pdfState?.fit||Math.abs(box.clientWidth-lastW)<30)return;lastW=box.clientWidth;clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>pdfLayout(),150);}).observe(box);
  box.addEventListener('mouseup',()=>setTimeout(()=>{
   const sel=getSelection(),text=sel&&!sel.isCollapsed?sel.toString():'';
